@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>問いガチャ — WorkShop Navi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #f4f6fb;
+      --bg-card:      #ffffff;
+      --bg-soft:      #eef1f8;
+      --border:       #dde2ef;
+      --border-strong:#c4cde0;
+      --text:         #1a1d2e;
+      --text-sub:     #4a5068;
+      --text-muted:   #8890aa;
+      --accent1:      #e8394a;
+      --accent2:      #d98000;
+      --accent3:      #1aaa55;
+      --accent4:      #2970e8;
+      --accent5:      #8b3fe8;
+      --accent6:      #d9500e;
+      --shadow-sm:    0 1px 4px rgba(30,40,80,0.07);
+      --shadow-md:    0 4px 16px rgba(30,40,80,0.10);
+      --shadow-lg:    0 8px 32px rgba(30,40,80,0.13);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 35% at 10% 5%,  rgba(41,112,232,0.06) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 90% 90%, rgba(139,63,232,0.05) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 80% 5%,  rgba(26,170,85,0.04) 0%,  transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ── 現在時刻バー ── */
+    .clock-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding: 10px 24px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .clock-time {
+      font-family: 'Zen Kurenaido', cursive;
+      font-size: 22px;
+      letter-spacing: 0.06em;
+      color: var(--accent4);
+    }
+
+    .clock-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+    }
+
+    .clock-date {
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── タイトル ── */
+    .title {
+      font-family: 'Zen Kurenaido', cursive;
+      font-size: clamp(32px, 9vw, 58px);
+      text-align: center;
+      letter-spacing: 0.10em;
+      margin-bottom: 6px;
+      color: var(--text);
+      line-height: 1.25;
+      text-shadow: 2px 3px 0px rgba(41,112,232,0.10);
+    }
+
+    .title .grad {
+      background: linear-gradient(120deg, var(--accent4) 0%, var(--accent5) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── 問いカード ── */
+    .question-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px 24px;
+      text-align: center;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-md);
+      transition: border-color 0.35s, box-shadow 0.35s;
+    }
+
+    .question-card.has-result {
+      border-color: var(--accent4);
+      box-shadow: 0 0 0 4px rgba(41,112,232,0.09), var(--shadow-md);
+    }
+
+    .question-text {
+      font-size: clamp(20px, 5.5vw, 30px);
+      font-weight: 700;
+      line-height: 1.65;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .question-placeholder {
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* 結果タイムスタンプ */
+    .result-time {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 500;
+      background: var(--bg-soft);
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      flex-wrap: wrap;
+      justify-content: center;
+      line-height: 1.4;
+    }
+
+    .result-time.visible { display: flex; }
+
+    .rt-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent3);
+      flex-shrink: 0;
+    }
+
+    .rt-now {
+      color: var(--text-sub);
+    }
+
+    .rt-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .rt-future {
+      color: var(--accent4);
+      font-weight: 700;
+    }
+
+    .rt-arrow {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    #resultTimeFuture {
+      color: var(--accent4);
+      font-weight: 700;
+    }
+
+    /* ── セグメントチップ ── */
+    .segments-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
+      margin-bottom: 20px;
+      min-height: 34px;
+    }
+
+    .seg-chip {
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .seg-chip.visible { opacity: 1; transform: translateY(0); }
+
+    .seg-0 { background: #fdecea; color: #c0202e; border: 1.5px solid #f5b8b8; }
+    .seg-1 { background: #fef5e0; color: #9e5e00; border: 1.5px solid #f0ce80; }
+    .seg-2 { background: #e6f7ee; color: #127a3d; border: 1.5px solid #8ed4aa; }
+    .seg-3 { background: #e8f0fd; color: #1554be; border: 1.5px solid #a0bcf0; }
+    .seg-4 { background: #f3eafe; color: #6622c0; border: 1.5px solid #c4a0f0; }
+    .seg-5 { background: #fdf1e8; color: #a83800; border: 1.5px solid #f0b898; }
+
+    /* ── ガチャボタン ── */
+    .gacha-btn {
+      display: block;
+      width: 100%;
+      padding: 20px;
+      font-family: 'Dela Gothic One', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.1em;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #2970e8 0%, #8b3fe8 100%);
+      box-shadow: 0 4px 20px rgba(41,112,232,0.32);
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-bottom: 12px;
+    }
+
+    .gacha-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(41,112,232,0.42);
+    }
+
+    .gacha-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 10px rgba(41,112,232,0.2);
+    }
+
+    .gacha-btn.spinning {
+      animation: btnPulse 0.45s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes btnPulse {
+      from { filter: brightness(1); }
+      to   { filter: brightness(1.18) saturate(1.15); }
+    }
+
+    /* ── 操作ボタン ── */
+    .action-row { display: flex; gap: 10px; }
+
+    .action-btn {
+      flex: 1;
+      padding: 13px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-sub);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-soft);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    /* ── ロックパネル ── */
+    .lock-panel {
+      margin-top: 24px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .slot-group { margin-bottom: 14px; }
+    .slot-group:last-child { margin-bottom: 0; }
+
+    .slot-label-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+
+    .slot-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .slot-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-sub);
+    }
+
+    .slot-options { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .opt-btn {
+      padding: 5px 13px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--bg-soft);
+      color: var(--text-sub);
+      transition: all 0.15s;
+    }
+
+    .opt-btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .opt-btn.selected { font-weight: 700; color: #fff; }
+
+    .s0 .opt-btn.selected { background: #e8394a; border-color: #e8394a; }
+    .s1 .opt-btn.selected { background: #d98000; border-color: #d98000; }
+    .s2 .opt-btn.selected { background: #1aaa55; border-color: #1aaa55; }
+    .s3 .opt-btn.selected { background: #2970e8; border-color: #2970e8; }
+    .s4 .opt-btn.selected { background: #8b3fe8; border-color: #8b3fe8; }
+    .s5 .opt-btn.selected { background: #d9500e; border-color: #d9500e; }
+
+    /* ── 履歴 ── */
+    .history-section { margin-top: 24px; }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent4);
+      background: var(--bg-soft);
+    }
+
+    .hi-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .hi-q { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hi-t { font-size: 11px; color: var(--text-muted); }
+    .hi-reuse { font-size: 11px; color: var(--text-muted); flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+    .history-item:hover .hi-reuse { opacity: 1; }
+
+    /* ── シャッフルアニメ ── */
+    @keyframes shuffleText {
+      0%   { opacity: 0.35; transform: scale(0.96); }
+      50%  { opacity: 0.75; transform: scale(1.02); }
+      100% { opacity: 0.35; transform: scale(0.96); }
+    }
+
+    .question-text.shuffling { animation: shuffleText 0.1s ease-in-out infinite; }
+
+    /* ── コピートースト ── */
+    .copy-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--accent3);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(26,170,85,0.3);
+    }
+
+    .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 現在時刻 -->
+  <div class="clock-bar">
+    <span style="font-size:16px;">🕐</span>
+    <span class="clock-time" id="clockTime">--:--:--</span>
+    <div class="clock-sep"></div>
+    <span class="clock-date" id="clockDate"></span>
+  </div>
+
+  <h1 class="title">🎲 <span class="grad">問いガチャ</span></h1>
+  <p class="subtitle">ボタンを押してアイスブレイクの問いを生成</p>
+
+  <!-- 問いカード -->
+  <div class="question-card" id="qcard">
+    <div class="question-text question-placeholder" id="qtext">ボタンを押して問いを生成！</div>
+    <div class="result-time" id="resultTime">
+      <div class="rt-dot"></div>
+      <span class="rt-now" id="resultTimeNow"></span>
+      <span class="rt-arrow">→</span>
+      <span class="rt-future" id="resultTimeFuture"></span>
+    </div>
+  </div>
+
+  <!-- セグメントチップ -->
+  <div class="segments-row" id="segments"></div>
+
+  <!-- ガチャボタン -->
+  <button class="gacha-btn" id="gachaBtn" onclick="runGacha()">ガチャを引く ✦</button>
+
+  <!-- 操作ボタン -->
+  <div class="action-row">
+    <button class="action-btn" onclick="copyQuestion()">📋 コピー</button>
+    <button class="action-btn" onclick="clearHistory()">🗑 履歴クリア</button>
+  </div>
+
+  <!-- ロック設定 -->
+  <div class="lock-panel">
+    <div class="panel-title">🔒 スロットを固定する</div>
+    <div id="lockGroups"></div>
+  </div>
+
+  <!-- 履歴 -->
+  <div class="history-section" id="historySection" style="display:none;">
+    <div class="panel-title" style="margin-bottom:12px;">🕘 生成履歴</div>
+    <ul class="history-list" id="historyList"></ul>
+  </div>
+
+</div>
+
+<div class="copy-toast" id="copyToast">コピーしました！</div>
+
+<script>
+  const SLOTS = [
+    { label:"数字",   options:["1","2","3","4","5","6","7","8","9","10","11","12"] },
+    { label:"間隔",   options:["分","時間","日","週","ヶ月","年"] },
+    { label:"前後",   options:["前","後"] },
+    { label:"対象",   options:["自分","友達","家族","知らない人"] },
+    { label:"どんな", options:["におすすめの","に聞きたい","が大切にしている","が苦手な"] },
+    { label:"何",     options:["場所","もの","問い","食べ物","人","こと"] }
+  ];
+
+  const ACCENT_HEX = ['#e8394a','#d98000','#1aaa55','#2970e8','#8b3fe8','#d9500e'];
+
+  let locked  = Array(SLOTS.length).fill(null);
+  let current = Array(SLOTS.length).fill(null);
+  let history = [];
+
+  /* 時計 */
+  function fmtTime(d) { return d.toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+  function fmtDate(d) { return d.toLocaleDateString('ja-JP', {month:'short',day:'numeric',weekday:'short'}); }
+
+  function tick() {
+    const now = new Date();
+    document.getElementById('clockTime').textContent = fmtTime(now);
+    document.getElementById('clockDate').textContent = fmtDate(now);
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  /* 初期化 */
+  function init() {
+    const container = document.getElementById('lockGroups');
+    SLOTS.forEach((slot, i) => {
+      const group = document.createElement('div');
+      group.className = `slot-group s${i}`;
+
+      const lr = document.createElement('div');
+      lr.className = 'slot-label-row';
+      const dot = document.createElement('div');
+      dot.className = 'slot-dot';
+      dot.style.background = ACCENT_HEX[i];
+      const lbl = document.createElement('span');
+      lbl.className = 'slot-label';
+      lbl.textContent = slot.label;
+      lr.append(dot, lbl);
+
+      const opts = document.createElement('div');
+      opts.className = 'slot-options';
+
+      const rand = document.createElement('button');
+      rand.className = 'opt-btn selected';
+      rand.textContent = 'ランダム';
+      rand.dataset.value = '__random__';
+      rand.onclick = () => setLock(i, null, group);
+      opts.appendChild(rand);
+
+      slot.options.forEach(o => {
+        const b = document.createElement('button');
+        b.className = 'opt-btn';
+        b.textContent = o;
+        b.dataset.value = o;
+        b.onclick = () => setLock(i, o, group);
+        opts.appendChild(b);
+      });
+
+      group.append(lr, opts);
+      container.appendChild(group);
+    });
+  }
+
+  function setLock(idx, val, group) {
+    locked[idx] = val;
+    group.querySelectorAll('.opt-btn').forEach(b => {
+      b.classList.remove('selected');
+      if (val === null && b.dataset.value === '__random__') b.classList.add('selected');
+      if (val !== null && b.dataset.value === val) b.classList.add('selected');
+    });
+  }
+
+  /* ガチャ */
+  let timer = null;
+
+  function runGacha() {
+    const btn   = document.getElementById('gachaBtn');
+    const qtext = document.getElementById('qtext');
+    const qcard = document.getElementById('qcard');
+
+    qcard.classList.remove('has-result');
+    document.getElementById('resultTime').classList.remove('visible');
+    btn.classList.add('spinning');
+    qtext.classList.add('shuffling');
+    qtext.classList.remove('question-placeholder');
+    clearSegs();
+
+    let n = 0;
+    clearInterval(timer);
+    timer = setInterval(() => {
+      n++;
+      qtext.textContent = buildQ(SLOTS.map((s, i) =>
+        locked[i] !== null ? locked[i] : s.options[Math.floor(Math.random() * s.options.length)]
+      ));
+      if (n >= 20) { clearInterval(timer); finalize(btn, qtext, qcard); }
+    }, 60);
+  }
+
+  function finalize(btn, qtext, qcard) {
+    current = SLOTS.map((s, i) =>
+      locked[i] !== null ? locked[i] : s.options[Math.floor(Math.random() * s.options.length)]
+    );
+    const q   = buildQ(current);
+    const now = new Date();
+
+    qtext.classList.remove('shuffling');
+    qtext.textContent = q;
+    btn.classList.remove('spinning');
+    qcard.classList.add('has-result');
+
+    // 数字(current[0]) + 間隔(current[1]) + 前後(current[2]) から未来/過去時刻を計算
+    const num  = parseInt(current[0], 10);
+    const unit = current[1];
+    const dir  = current[2]; // 前 or 後
+    const sign = dir === '後' ? 1 : -1;
+    const target = new Date(now);
+
+    if      (unit === '分')   target.setMinutes(target.getMinutes() + sign * num);
+    else if (unit === '時間') target.setHours(target.getHours()     + sign * num);
+    else if (unit === '日')   target.setDate(target.getDate()        + sign * num);
+    else if (unit === '週')   target.setDate(target.getDate()        + sign * num * 7);
+    else if (unit === 'ヶ月') target.setMonth(target.getMonth()      + sign * num);
+    else if (unit === '年')   target.setFullYear(target.getFullYear()+ sign * num);
+
+    const nowStr    = fmtTime(now);
+    const targetStr = fmtDateTime(target);
+    const nowTimeText = `今 ${nowStr}`;
+
+    document.getElementById('resultTimeNow').textContent    = nowTimeText;
+    document.getElementById('resultTimeFuture').textContent = targetStr;
+    document.getElementById('resultTime').classList.add('visible');
+
+    renderSegs(current);
+    addHistory(q, nowStr, targetStr);
+  }
+
+  function fmtDateTime(d) {
+    const sameYear = d.getFullYear() === new Date().getFullYear();
+    const datePart = d.toLocaleDateString('ja-JP', {
+      year:  sameYear ? undefined : 'numeric',
+      month: 'short',
+      day:   'numeric',
+      weekday: 'short'
+    });
+    const timePart = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    return `${datePart} ${timePart}`;
+  }
+
+  function buildQ(v) { return `${v[0]}${v[1]}${v[2]}の${v[3]}${v[4]}${v[5]}`; }
+
+  /* セグメント */
+  function renderSegs(vals) {
+    const row = document.getElementById('segments');
+    row.innerHTML = '';
+    vals.forEach((v, i) => {
+      const c = document.createElement('span');
+      c.className = `seg-chip seg-${i}`;
+      c.textContent = v;
+      row.appendChild(c);
+      setTimeout(() => c.classList.add('visible'), i * 55);
+    });
+  }
+
+  function clearSegs() {
+    document.querySelectorAll('.seg-chip').forEach(c => c.classList.remove('visible'));
+    setTimeout(() => { document.getElementById('segments').innerHTML = ''; }, 250);
+  }
+
+  /* 履歴 */
+  function addHistory(q, t, fut) {
+    history.unshift({ q, t, fut });
+    if (history.length > 20) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const sec  = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    if (!history.length) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    history.forEach(({ q, t, fut }) => {
+      const li = document.createElement('li');
+      li.className = 'history-item';
+      li.innerHTML = `
+        <div class="hi-left">
+          <div class="hi-q">${q}</div>
+          <div class="hi-t">今 ${t} → <span style="color:var(--accent4);font-weight:700;">${fut}</span></div>
+        </div>
+        <span class="hi-reuse">↩ 再表示</span>`;
+      li.onclick = () => {
+        const qt = document.getElementById('qtext');
+        qt.textContent = q;
+        qt.classList.remove('question-placeholder');
+        document.getElementById('qcard').classList.add('has-result');
+        document.getElementById('resultTimeNow').textContent    = `今 ${t}`;
+        document.getElementById('resultTimeFuture').textContent = fut;
+        document.getElementById('resultTime').classList.add('visible');
+        clearSegs();
+      };
+      list.appendChild(li);
+    });
+  }
+
+  function clearHistory() { history = []; renderHistory(); }
+
+  /* コピー */
+  function copyQuestion() {
+    const q = document.getElementById('qtext').textContent;
+    if (q === 'ボタンを押して問いを生成！') return;
+    navigator.clipboard.writeText(q).then(() => {
+      const t = document.getElementById('copyToast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>

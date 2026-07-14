@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教育産業データベース検索・分析ツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>教育産業データベース検索・分析ツール</h1>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>該当レコード数</h3>
+            <div class="stat-value" id="totalCount">0</div>
+        </div>
+        <div class="card">
+            <h3>B2B / B2C 比率</h3>
+            <div class="bar-chart" id="b2bChart"></div>
+        </div>
+        <div class="card">
+            <h3>提供形態</h3>
+            <div class="bar-chart" id="typeChart"></div>
+        </div>
+        <div class="card">
+            <h3>中分類（トップ5）</h3>
+            <div class="bar-chart" id="categoryChart"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="globalSearch">全体キーワード検索</label>
+            <input type="text" id="globalSearch" placeholder="表全体から横断的に検索...">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="data.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>

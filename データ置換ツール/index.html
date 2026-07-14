@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データコーディング（置換）ツール</title>
+    <!-- Tailwind CSS (スタイリング用) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (Excel/CSV処理用) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- Lucide Icons (アイコン用) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 見やすいスクロールバーの設定 */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; border: 2px solid #f1f5f9; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* テーブルの枠線と影の微調整 */
+        table { border-spacing: 0; }
+        .sticky-col { position: sticky; left: 0; z-index: 10; }
+        .sticky-corner { position: sticky; top: 0; left: 0; z-index: 20; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden font-sans">
+
+    <!-- 左側：コントロールパネル -->
+    <div class="w-96 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col h-full shadow-lg z-30 relative">
+        <div class="p-5 border-b border-slate-100 bg-slate-800 text-white flex items-center gap-3">
+            <i data-lucide="file-spreadsheet" class="w-6 h-6 text-emerald-400"></i>
+            <h1 class="text-lg font-bold tracking-wider">コーディングツール</h1>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-5 space-y-6">
+            
+            <!-- Step 1: ファイル読み込み -->
+            <section>
+                <div class="flex items-center gap-2 mb-2 text-slate-700 font-bold">
+                    <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                    <h3>ファイルの読み込み</h3>
+                </div>
+                <input type="file" id="fileInput" accept=".csv, .xlsx" class="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2.5 file:px-4
+                    file:rounded-lg file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-lg p-1"/>
+                
+                <!-- シート選択 (複数シートがある場合のみ表示) -->
+                <div id="sheetSelectContainer" class="mt-3 hidden">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">シートを選択</label>
+                    <select id="sheetSelect" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                </div>
+            </section>
+
+            <hr class="border-slate-100">
+
+            <!-- Step 2: 範囲指定と抽出 -->
+            <section>
+                <div class="flex items-center gap-2 mb-2 text-slate-700 font-bold">
+                    <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                    <h3>対象範囲と抽出</h3>
+                </div>
+                <p class="text-xs text-slate-500 mb-2">右の表を見ながら対象の範囲を指定し、「抽出」を押すと自動でリストアップされます。</p>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <input type="text" id="rangeInput" value="A2:H12" placeholder="例: A2:H12" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono">
+                    </div>
+                </div>
+                <button onclick="extractUnique()" class="mt-2 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-sm font-medium transition flex justify-center items-center gap-2 border border-slate-200">
+                    <i data-lucide="scan-text" class="w-4 h-4"></i> 範囲から置換対象を抽出
+                </button>
+            </section>
+
+            <hr class="border-slate-100">
+
+            <!-- Step 3: 置換規則 -->
+            <section>
+                <div class="flex items-center gap-2 mb-2 text-slate-700 font-bold">
+                    <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+                    <h3>置換ルールの設定</h3>
+                </div>
+                
+                <div id="rulesContainer" class="space-y-2 mt-3">
+                    <!-- ルール行がここに追加されます -->
+                </div>
+
+                <button onclick="addRuleDOM('', '')" class="mt-3 w-full border border-dashed border-slate-300 hover:border-blue-400 hover:text-blue-600 text-slate-500 py-2 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1 bg-slate-50 hover:bg-blue-50">
+                    <i data-lucide="plus" class="w-4 h-4"></i> 手動でルールを追加
+                </button>
+            </section>
+        </div>
+
+        <!-- 実行・保存エリア (下部固定) -->
+        <div class="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
+            <button onclick="executeReplace()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-md shadow-blue-200 transition flex justify-center items-center gap-2">
+                <i data-lucide="arrow-right-left" class="w-5 h-5"></i> 置換を実行する
+            </button>
+            <button id="downloadBtn" onclick="downloadData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow-md shadow-emerald-200 transition justify-center items-center gap-2 hidden">
+                <i data-lucide="download" class="w-5 h-5"></i> 変換したファイルを保存
+            </button>
+        </div>
+    </div>
+
+    <!-- 右側：プレビューテーブル -->
+    <div class="flex-1 flex flex-col h-full bg-slate-100 overflow-hidden relative">
+        <!-- テーブルヘッダー領域 -->
+        <div class="px-6 py-4 bg-white border-b border-slate-200 shadow-sm flex justify-between items-center z-10">
+            <div>
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <i data-lucide="table" class="w-5 h-5 text-slate-400"></i> データプレビュー
+                </h2>
+                <p class="text-xs text-slate-500 mt-1" id="previewInfo">ファイルを選択してください</p>
+            </div>
+        </div>
+
+        <!-- テーブル本体領域 -->
+        <div id="tableContainer" class="flex-1 overflow-auto bg-white m-4 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex h-full items-center justify-center text-slate-400 flex-col gap-3">
+                <i data-lucide="file-up" class="w-12 h-12 text-slate-300"></i>
+                <p>左側のパネルからファイルを読み込んでください</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-3 rounded-xl shadow-xl text-white font-medium opacity-0 hidden transition-opacity duration-300 z-50"></div>
+
+    <script>
+        // 初期化
+        lucide.createIcons();
+
+        let globalWorkbook = null;
+        let currentSheetName = "";
+        let currentData = [];
+
+        // 1. ファイル読み込み処理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                globalWorkbook = XLSX.read(data, {type: 'array'});
+                
+                // シート選択ドロップダウンの構築
+                const select = document.getElementById('sheetSelect');
+                select.innerHTML = '';
+                globalWorkbook.SheetNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    select.appendChild(option);
+                });
+
+                if (globalWorkbook.SheetNames.length > 1) {
+                    document.getElementById('sheetSelectContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('sheetSelectContainer').classList.add('hidden');
+                }
+
+                // 最初のシートを読み込む
+                loadSheet(globalWorkbook.SheetNames[0]);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // シート切り替えイベント
+        document.getElementById('sheetSelect').addEventListener('change', function(e) {
+            loadSheet(e.target.value);
+        });
+
+        // シートデータのロード
+        function loadSheet(sheetName) {
+            currentSheetName = sheetName;
+            const worksheet = globalWorkbook.Sheets[sheetName];
+            // データを2次元配列として取得
+            currentData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+            
+            document.getElementById('previewInfo').textContent = `シート: ${sheetName} / 全 ${currentData.length} 行`;
+            
+            // 初回読み込み時にダウンロードボタンを隠す
+            document.getElementById('downloadBtn').classList.add('hidden');
+            document.getElementById('downloadBtn').classList.remove('flex');
+            
+            renderTable(currentData);
+        }
+
+        // 列のインデックス(0,1,2...)をA,B,C...に変換
+        function getColumnName(index) {
+            let name = '';
+            let temp = index;
+            while (temp >= 0) {
+                name = String.fromCharCode(temp % 26 + 65) + name;
+                temp = Math.floor(temp / 26) - 1;
+            }
+            return name;
+        }
+
+        // Excelの範囲表現をパース
+        function decodeRange(rangeStr) {
+            if (!rangeStr) {
+                // 空欄の場合はデータ全体
+                return {
+                    s: {r: 0, c: 0},
+                    e: {r: currentData.length > 0 ? currentData.length - 1 : 0, 
+                        c: currentData.length > 0 && currentData[0] ? currentData[0].length - 1 : 0}
+                };
+            }
+            try {
+                return XLSX.utils.decode_range(rangeStr);
+            } catch(e) {
+                showToast("範囲の形式が正しくありません。（例: A2:H12）", "error");
+                return null;
+            }
+        }
+
+        // プレビューテーブルの描画（行番号・列番号付き）
+        function renderTable(data) {
+            const container = document.getElementById('tableContainer');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="p-10 text-center text-slate-400">データが空です</div>';
+                return;
+            }
+
+            // パフォーマンスのため、DOM描画は最大2000行に制限
+            const maxRows = 2000;
+            const displayData = data.slice(0, maxRows);
+            
+            // 最大の列数を計算
+            let maxCols = 0;
+            displayData.forEach(row => {
+                if (row && row.length > maxCols) maxCols = row.length;
+            });
+
+            let html = `<table class="min-w-full text-sm whitespace-nowrap bg-white">
+                <thead class="sticky top-0 bg-slate-100 shadow-sm z-20">
+                    <tr>
+                        <th class="sticky-corner border-b border-r border-slate-300 bg-slate-200 w-12 px-2 py-1 text-center"></th>`;
+            
+            // 列アルファベット (A, B, C...)
+            for (let c = 0; c < maxCols; c++) {
+                html += `<th class="border-b border-r border-slate-300 px-4 py-2 font-bold text-slate-600 text-center min-w-[100px]">${getColumnName(c)}</th>`;
+            }
+            html += `</tr></thead><tbody>`;
+
+            // データ行
+            displayData.forEach((row, r) => {
+                html += `<tr>
+                    <th class="sticky-col border-b border-r border-slate-300 bg-slate-100 text-slate-500 px-2 py-1 text-center text-xs font-medium">${r + 1}</th>`;
+                for (let c = 0; c < maxCols; c++) {
+                    const val = (row[c] !== undefined && row[c] !== null) ? row[c] : '';
+                    // HTMLエスケープ
+                    const safeVal = String(val).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    html += `<td class="border-b border-r border-slate-200 px-4 py-2 truncate max-w-[250px] hover:bg-blue-50 transition-colors" title="${safeVal}">${safeVal}</td>`;
+                }
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+            
+            if (data.length > maxRows) {
+                html += `<div class="p-3 text-center text-xs font-bold text-amber-600 bg-amber-50 border-t border-amber-200">
+                    ※パフォーマンス維持のためプレビューは先頭${maxRows}行のみ表示しています。置換や保存は全 ${data.length} 行に対して適用されます。
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 2. 指定範囲からユニーク（重複なし）な値を抽出
+        function extractUnique() {
+            if (!currentData || currentData.length === 0) {
+                showToast('先にファイルを読み込んでください', 'error');
+                return;
+            }
+
+            const rangeStr = document.getElementById('rangeInput').value.trim();
+            const range = decodeRange(rangeStr);
+            if(!range) return;
+
+            const uniqueSet = new Set();
+
+            // 範囲内のセルを走査して値をSetに格納
+            for (let r = range.s.r; r <= range.e.r; r++) {
+                if (r >= currentData.length) break;
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    const cellVal = currentData[r][c];
+                    const strVal = String(cellVal !== undefined && cellVal !== null ? cellVal : "").trim();
+                    if (strVal !== "") {
+                        uniqueSet.add(strVal);
+                    }
+                }
+            }
+
+            const uniqueArray = Array.from(uniqueSet);
+            if (uniqueArray.length === 0) {
+                showToast('指定範囲内に文字データが見つかりませんでした。', 'error');
+                return;
+            }
+
+            // ルールUIを初期化して、抽出した値を追加
+            document.getElementById('rulesContainer').innerHTML = '';
+            
+            // 件数が多い場合は警告
+            if(uniqueArray.length > 50) {
+                if(!confirm(`置換対象が ${uniqueArray.length} 件見つかりました。全てリストに追加しますか？`)) return;
+            }
+
+            uniqueArray.forEach(val => {
+                addRuleDOM(val, '');
+            });
+            
+            showToast(`${uniqueArray.length}件の置換対象を抽出しました！「置換後」の値を入力してください。`, 'success');
+        }
+
+        // ルール入力用のUIを追加する関数
+        function addRuleDOM(searchVal, replaceVal) {
+            const container = document.getElementById('rulesContainer');
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 rule-row group bg-slate-50 p-2 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors';
+            
+            row.innerHTML = `
+                <div class="flex-1 relative">
+                    <input type="text" class="search-val w-full border border-slate-300 rounded md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium" value="${searchVal}" placeholder="置換前">
+                </div>
+                <div class="text-slate-400 font-bold px-1"><i data-lucide="arrow-right" class="w-4 h-4"></i></div>
+                <div class="flex-1 relative">
+                    <input type="text" class="replace-val w-full border border-blue-200 rounded md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-blue-50 text-blue-800 font-bold" value="${replaceVal}" placeholder="置換後">
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="削除">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(row);
+            lucide.createIcons();
+        }
+
+        // 3. 置換の実行
+        function executeReplace() {
+            if (!currentData || currentData.length === 0) {
+                showToast("データがありません。", "error");
+                return;
+            }
+
+            // ルールの収集
+            const rules = [];
+            document.querySelectorAll('.rule-row').forEach(row => {
+                const search = row.querySelector('.search-val').value;
+                const replace = row.querySelector('.replace-val').value;
+                if (search) rules.push({search: String(search).trim(), replace: String(replace).trim()});
+            });
+
+            if(rules.length === 0) {
+                showToast("置換ルールが設定されていません。", "error");
+                return;
+            }
+
+            const rangeStr = document.getElementById('rangeInput').value.trim();
+            const range = decodeRange(rangeStr);
+            if (!range) return;
+
+            let replaceCount = 0;
+            // データの書き換え
+            for (let r = range.s.r; r <= range.e.r; r++) {
+                if (r >= currentData.length) break;
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    const currentVal = String(currentData[r][c] !== undefined && currentData[r][c] !== null ? currentData[r][c] : "").trim();
+                    
+                    const matchedRule = rules.find(rule => rule.search === currentVal);
+                    if (matchedRule) {
+                        // 置換後が数値に変換可能なら数値としてセット（Excel出力時に綺麗になるため）
+                        const replaceVal = matchedRule.replace;
+                        if (replaceVal !== "" && !isNaN(replaceVal)) {
+                            currentData[r][c] = Number(replaceVal);
+                        } else {
+                            currentData[r][c] = replaceVal;
+                        }
+                        replaceCount++;
+                    }
+                }
+            }
+
+            // プレビューの更新
+            renderTable(currentData);
+            
+            // ダウンロードボタンの表示
+            const btn = document.getElementById('downloadBtn');
+            btn.classList.remove('hidden');
+            btn.classList.add('flex');
+
+            showToast(`${replaceCount} 箇所のデータを置換しました！保存ボタンからダウンロードできます。`, 'success');
+        }
+
+        // 4. ファイルの保存 (ダウンロード)
+        function downloadData() {
+            if(!globalWorkbook) return;
+            
+            // 現在の配列データからSheetオブジェクトを再生成し、対象シートを上書き
+            const newWorksheet = XLSX.utils.aoa_to_sheet(currentData);
+            globalWorkbook.Sheets[currentSheetName] = newWorksheet;
+
+            // 元のファイル名を利用して新しいファイル名を生成
+            const fileInput = document.getElementById('fileInput');
+            const originalName = fileInput.files.length > 0 ? fileInput.files[0].name : 'data.xlsx';
+            const newName = originalName.replace(/\.[^/.]+$/, "") + "_coded.xlsx";
+
+            // ファイルの生成とダウンロード
+            XLSX.writeFile(globalWorkbook, newName);
+            showToast('ファイルをダウンロードしました。', 'success');
+        }
+
+        // トースト通知（ポップアップメッセージ）の表示ロジック
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            
+            if (type === 'success') {
+                toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 z-50 flex items-center gap-2 font-medium';
+                toast.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5"></i> ${message}`;
+            } else {
+                toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 bg-rose-600 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 z-50 flex items-center gap-2 font-medium';
+                toast.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5"></i> ${message}`;
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('hidden');
+            // 少し遅延させてからフェードイン
+            setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translate(-50%, 10px)'; }, 10);
+            
+            // 3.5秒後にフェードアウト
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, 0)';
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3500);
+        }
+
+        // 初期ルールをいくつか表示しておく
+        addRuleDOM('よくあてはまる', '5');
+        addRuleDOM('あてはまる', '4');
+    </script>
+</body>
+</html>

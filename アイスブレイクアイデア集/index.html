@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ワークショップネタ検索</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Workshop Idea Database</h1>
+    <p>場作りと探究のためのファシリテーション・レシピ</p>
+  </header>
+
+  <main>
+    <aside class="filters">
+      <input type="text" id="keywordFilter" placeholder="キーワードで検索...">
+
+      <select id="sortFilter">
+        <option value="random">おすすめ順 (ランダム)</option>
+        <option value="asc">タイトル順 (昇順)</option>
+        <option value="desc">タイトル順 (降順)</option>
+      </select>
+
+      <select id="categoryFilter">
+        <option value="">すべてのカテゴリ</option>
+        <option value="チェックイン">チェックイン</option>
+        <option value="アイスブレイク">アイスブレイク</option>
+        <option value="グループワーク">グループワーク</option>
+        <option value="チェックアウト">チェックアウト</option>
+      </select>
+
+      <select id="sizeFilter">
+        <option value="">すべての人数</option>
+        <option value="少人数(2〜4人)">少人数(2〜4人)</option>
+        <option value="中人数(5〜10人)">中人数(5〜10人)</option>
+        <option value="大人数(11人以上)">大人数(11人以上)</option>
+        <option value="人数問わず">人数問わず</option>
+      </select>
+
+      <select id="timeFilter">
+        <option value="">すべての時間</option>
+        <option value="5分以内">5分以内</option>
+        <option value="5〜15分">5〜15分</option>
+        <option value="15〜30分">15〜30分</option>
+        <option value="30分以上">30分以上</option>
+      </select>
+
+      <button id="resetButton">条件をクリア</button>
+    </aside>
+
+    <section id="cardContainer" class="card-container">
+      <p class="loading">データを読み込んでいます...</p>
+    </section>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>

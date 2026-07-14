@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汎用ファイルエディタ & プレビュー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .transition-all { transition: all 0.3s ease-in-out; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        /* CSV用テーブルスタイル */
+        .csv-table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+        .csv-table th, .csv-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+        .csv-table th { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+
+    <div id="main-container" class="flex flex-col lg:flex-row h-full">
+        
+        <div id="code-area" class="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col p-4 transition-all">
+            <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+                <div class="flex items-center space-x-2">
+                    <h2 class="text-xl font-semibold text-gray-800">エディタ</h2>
+                    <select id="extension-select" class="bg-white border border-gray-300 rounded px-2 py-1 text-sm font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500">
+                        <optgroup label="Document">
+                            <option value="md">.md (Markdown)</option>
+                        </optgroup>
+                        <optgroup label="Web">
+                            <option value="html" selected>.html</option>
+                            <option value="css">.css</option>
+                            <option value="js">.js</option>
+                        </optgroup>
+                        <optgroup label="Programming">
+                            <option value="py">.py (Python)</option>
+                            <option value="java">.java</option>
+                            <option value="cpp">.cpp</option>
+                        </optgroup>
+                        <optgroup label="Data">
+                            <option value="csv">.csv</option>
+                            <option value="sql">.sql</option>
+                            <option value="json">.json</option>
+                        </optgroup>
+                        <optgroup label="Config">
+                            <option value="yaml">.yaml</option>
+                            <option value="ini">.ini</option>
+                            <option value="config">.config</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex items-center px-2">
+                        <input type="text" id="filename-input" value="index" class="text-sm text-right w-24 focus:outline-none text-gray-700 border-b border-gray-300 focus:border-blue-500 bg-transparent">
+                        <span id="extension-display" class="text-sm text-gray-400 ml-1">.html</span>
+                    </div>
+
+                    <div class="h-4 w-px bg-gray-300 mx-1"></div>
+
+                    <button id="download-btn" title="ダウンロード" class="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+
+                    <button id="clear-code" title="クリア" class="p-1.5 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    
+                    <button id="toggle-code-fullscreen" class="p-1.5 text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors">
+                        <svg class="w-5 h-5" id="code-expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5h-4m0 0v-4m0 4l-5-5"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <textarea 
+                id="main-input"
+                class="w-full h-full flex-1 p-4 border border-gray-300 rounded-lg shadow-sm resize-none font-mono text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ここにコードを入力してください..."
+                spellcheck="false"
+            ></textarea>
+        </div>
+
+        <div id="preview-area" class="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col p-4 border-t-2 lg:border-t-0 lg:border-l-2 border-gray-300 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-semibold text-gray-800">プレビュー / 内容確認</h2>
+                <div id="preview-type-badge" class="px-2 py-1 bg-gray-200 text-xs font-bold text-gray-600 rounded">HTML MODE</div>
+            </div>
+            
+            <iframe id="preview-html" class="w-full h-full flex-1 bg-white border border-gray-300 rounded-lg shadow-sm" sandbox="allow-scripts allow-same-origin"></iframe>
+            
+            <div id="preview-data" class="hidden w-full h-full flex-1 bg-white border border-gray-300 rounded-lg shadow-sm p-4 overflow-auto font-mono text-sm">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const mainInput = document.getElementById('main-input');
+        const previewHtml = document.getElementById('preview-html');
+        const previewData = document.getElementById('preview-data');
+        const previewBadge = document.getElementById('preview-type-badge');
+        
+        const extSelect = document.getElementById('extension-select');
+        const extDisplay = document.getElementById('extension-display');
+        const filenameInput = document.getElementById('filename-input');
+        const downloadBtn = document.getElementById('download-btn');
+        const clearBtn = document.getElementById('clear-code');
+
+        // 言語ごとのデフォルトテンプレート
+        const templates = {
+            html: '<div class="p-6">\n  <h1 class="text-2xl font-bold text-blue-600">Hello HTML</h1>\n</div>',
+            md: '# Hello Markdown\n\nこれは**Markdown**のプレビューテストです。\n\n## 特徴\n- リアルタイムでプレビューされます\n- `marked.js` を使用しています\n\n> 引用ブロックもサポートしています。',
+            py: 'def hello_world():\n    print("Hello, Python!")\n\nif __name__ == "__main__":\n    hello_world()',
+            json: '{\n  "name": "example",\n  "version": "1.0.0",\n  "active": true\n}',
+            csv: 'id,name,email\n1,Tanaka,tanaka@example.com\n2,Sato,sato@example.com',
+            sql: 'SELECT * FROM users\nWHERE status = "active"\nORDER BY created_at DESC;',
+            yaml: 'server:\n  port: 8080\n  host: localhost\ndatabase:\n  enabled: true'
+        };
+
+        // プレビューの更新
+        function updatePreview() {
+            const code = mainInput.value;
+            const ext = extSelect.value;
+            
+            // HTMLとMarkdownの場合はiframeで描画
+            if (ext === 'html' || ext === 'md') {
+                previewHtml.classList.remove('hidden');
+                previewData.classList.add('hidden');
+                previewBadge.innerText = ext === 'html' ? "HTML RENDER" : "MARKDOWN RENDER";
+                
+                const doc = previewHtml.contentWindow.document;
+                doc.open();
+                
+                let content = code;
+                let mdStyles = "";
+                
+                // Markdownの場合はパースして専用スタイルを適用
+                if (ext === 'md') {
+                    content = marked.parse(code);
+                    mdStyles = `
+                        <style>
+                            body { font-family: sans-serif; line-height: 1.6; color: #333; }
+                            h1 { font-size: 2em; font-weight: bold; border-bottom: 1px solid #e5e7eb; margin-bottom: 0.5em; padding-bottom: 0.3em; }
+                            h2 { font-size: 1.5em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+                            h3 { font-size: 1.25em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+                            p { margin-bottom: 1em; }
+                            ul { list-style-type: disc; padding-left: 2em; margin-bottom: 1em; }
+                            ol { list-style-type: decimal; padding-left: 2em; margin-bottom: 1em; }
+                            a { color: #2563eb; text-decoration: underline; }
+                            pre { background: #f3f4f6; padding: 1em; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 1em; }
+                            code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; font-size: 0.875em; }
+                            pre code { background: transparent; padding: 0; }
+                            blockquote { border-left: 4px solid #d1d5db; padding-left: 1em; color: #6b7280; margin: 0 0 1em 0; }
+                        </style>
+                    `;
+                }
+
+                doc.write(`
+                    <html>
+                    <head>
+                        <script src="https://cdn.tailwindcss.com"><\/script>
+                        ${mdStyles}
+                    </head>
+                    <body>
+                        ${ext === 'html' ? code : `<div class="p-6">${content}</div>`}
+                    </body>
+                    </html>
+                `);
+                doc.close();
+            } else {
+                previewHtml.classList.add('hidden');
+                previewData.classList.remove('hidden');
+                previewBadge.innerText = `${ext.toUpperCase()} VIEW`;
+
+                if (ext === 'csv') {
+                    renderCsv(code);
+                } else if (ext === 'json') {
+                    renderJson(code);
+                } else {
+                    renderPlain(code);
+                }
+            }
+        }
+
+        // CSVをテーブルとして表示
+        function renderCsv(code) {
+            const rows = code.split('\n').filter(row => row.trim() !== '');
+            if (rows.length === 0) { previewData.innerHTML = ''; return; }
+            
+            let html = '<table class="csv-table">';
+            rows.forEach((row, i) => {
+                const cols = row.split(',');
+                html += '<tr>';
+                cols.forEach(col => {
+                    html += i === 0 ? `<th>${col}</th>` : `<td>${col}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            previewData.innerHTML = html;
+        }
+
+        // JSONを整形して表示
+        function renderJson(code) {
+            try {
+                const obj = JSON.parse(code);
+                previewData.innerHTML = `<pre class="text-green-700">${JSON.stringify(obj, null, 2)}</pre>`;
+            } catch (e) {
+                previewData.innerHTML = `<pre class="text-red-500">JSON Error: ${e.message}</pre>`;
+            }
+        }
+
+        // その他をプレーンテキストで表示
+        function renderPlain(code) {
+            previewData.innerHTML = `<pre class="text-gray-800">${code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
+        }
+
+        // ダウンロード
+        function downloadFile() {
+            const content = mainInput.value;
+            const ext = extSelect.value;
+            let filename = filenameInput.value.trim() || 'file';
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // イベント設定
+        extSelect.addEventListener('change', () => {
+            const ext = extSelect.value;
+            extDisplay.innerText = `.${ext}`;
+            if (templates[ext]) {
+                if (mainInput.value === '' || confirm('テンプレートを読み込みますか？(現在の内容は消去されます)')) {
+                    mainInput.value = templates[ext];
+                }
+            }
+            updatePreview();
+        });
+
+        mainInput.addEventListener('input', updatePreview);
+        downloadBtn.addEventListener('click', downloadFile);
+        clearBtn.addEventListener('click', () => { if(confirm('消去しますか？')) { mainInput.value = ''; updatePreview(); } });
+
+        // 初期表示
+        window.onload = () => {
+            mainInput.value = templates.html;
+            extSelect.value = 'html';
+            updatePreview();
+        };
+
+        // 最大化ロジック (簡易版)
+        document.getElementById('toggle-code-fullscreen').addEventListener('click', () => {
+            document.getElementById('preview-area').classList.toggle('hidden');
+            document.getElementById('code-area').classList.toggle('lg:w-1/2');
+            document.getElementById('code-area').classList.toggle('lg:w-full');
+        });
+    </script>
+</body>
+</html>

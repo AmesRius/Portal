@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プレゼン用タイマー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">発表用タイマー</h1>
+        
+        <div id="display" class="text-6xl font-mono font-bold mb-8 text-gray-900">05:00</div>
+
+        <div class="mb-6">
+            <button onclick="startFullTimer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold transition">5分タイマーを開始 (3分で通知)</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button id="startBtn" onclick="toggleTimer()" class="bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-bold transition">スタート</button>
+            <button onclick="resetTimer()" class="bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold transition">リセット</button>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 300;
+        let timerId = null;
+        let isRunning = false;
+        let hasNotified3Min = false;
+
+        const display = document.getElementById('display');
+        const startBtn = document.getElementById('startBtn');
+
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            
+            if (timeLeft < 60) {
+                display.classList.add('text-red-600');
+            } else {
+                display.classList.remove('text-red-600');
+            }
+        }
+
+        function startFullTimer() {
+            resetTimer();
+            timeLeft = 300;
+            hasNotified3Min = false;
+            updateDisplay();
+            toggleTimer();
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerId);
+                startBtn.textContent = '再開';
+            } else {
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        // 3分経過時（残り2分になった時）の通知
+                        if (timeLeft === 120 && !hasNotified3Min) {
+                            playSound(880); // 3分経過時は高い音
+                            hasNotified3Min = true;
+                        }
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerId);
+                        isRunning = false;
+                        startBtn.textContent = 'スタート';
+                        playSound(440); // 5分経過時は通常の音
+                    }
+                }, 1000);
+                startBtn.textContent = '一時停止';
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            hasNotified3Min = false;
+            startBtn.textContent = 'スタート';
+            timeLeft = 300;
+            updateDisplay();
+        }
+
+        function playSound(freq) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            osc.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+:root {
+  --primary-color: #3498db;
+  --bg-color: #f8f9fa;
+  --text-color: #333;
+  --border-color: #ddd;
+}
+
+body {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #fff;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.builder-panel, .output-panel {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.csv-upload-box {
+  background: #eef2f5;
+  padding: 15px;
+  border-radius: 6px;
+  border: 2px dashed #b0c4de;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.hint { font-size: 12px; color: #666; margin: 8px 0 0 0; }
+.field-badge {
+  display: inline-block; background: #e1f5fe; color: #0288d1;
+  padding: 6px 12px; border-radius: 20px; margin: 4px; font-size: 13px; font-weight: bold;
+}
+
+.site-settings input[type="text"] {
+  width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
+}
+
+.color-controls {
+  display: flex; gap: 15px; flex-wrap: wrap; background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #eee;
+}
+
+.color-controls label { display: flex; flex-direction: column; font-size: 13px; font-weight: bold; }
+.color-controls input[type="color"] { border: none; width: 60px; height: 35px; padding: 0; cursor: pointer; border-radius: 4px; }
+
+/* プレビューエリアのスタイル */
+.preview-box {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  /* JSで動的にCSS変数を上書きして色を変えるための変数定義 */
+  --prev-bg: #f4f7f6;
+  --prev-text: #333333;
+  --prev-primary: #3498db;
+  
+  background-color: var(--prev-bg);
+  color: var(--prev-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.preview-box h3 { text-align: center; margin-top: 0; }
+.preview-toolbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.preview-input { padding: 6px 12px; background: #fff; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; color: #999; }
+.preview-table { width: 100%; border-collapse: collapse; background: #fff; }
+.preview-table th, .preview-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; font-size: 13px; }
+.preview-table th {
+  background-color: var(--prev-primary);
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.btn { padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: #fff; }
+.btn:hover:not(:disabled) { opacity: 0.8; }
+.btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+.btn.primary { background-color: var(--primary-color); width: 100%; margin-top: 15px; font-size: 16px; }
+
+textarea#output-code {
+  width: 100%; height: 250px; padding: 15px; font-family: monospace; font-size: 13px;
+  border: 1px solid var(--border-color); border-radius: 4px; background: #282c34; color: #abb2bf; resize: vertical; box-sizing: border-box;
+}

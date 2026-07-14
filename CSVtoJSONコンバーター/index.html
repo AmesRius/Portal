@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to JSON & JS Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .drop-zone {
+            transition: all 0.3s ease;
+        }
+        .drop-zone.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- ヘッダー -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">CSV to JSON / JS Converter</h1>
+            <p class="text-slate-600">探究テーマデータベースなどのJS配列形式にも対応</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 入力セクション -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-800">1. CSV入力 / 貼り付け</h2>
+                    <div class="flex gap-2">
+                        <select id="delimiter" class="text-sm border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value=",">カンマ ( , )</option>
+                            <option value=";">セミコロン ( ; )</option>
+                            <option value="	">タブ ( TSV )</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ファイルアップロード -->
+                <div id="drop-zone" class="drop-zone border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer mb-4 hover:border-blue-400 bg-slate-50/50">
+                    <input type="file" id="file-input" class="hidden" accept=".csv,.txt">
+                    <div class="flex flex-col items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-sm text-slate-600">ファイルをドロップ または <span class="text-blue-600 font-medium">クリック</span></p>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <textarea id="csv-input" class="w-full h-80 p-4 text-sm font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none custom-scrollbar" placeholder="title,genre,grade,year,course,school&#10;高校生のSNS利用...,スポーツ・健康,2年,2024,総合探究,未来高等学校"></textarea>
+                    <button id="clear-btn" class="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 transition-colors" title="クリア">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 出力セクション -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                <div class="flex flex-col gap-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-slate-800">2. 変換結果 (JSON / JS)</h2>
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="pretty-print" checked class="sr-only peer">
+                                <div class="relative w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+                                <span class="ms-2 text-xs font-medium text-slate-600">整形</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- オプション設定 -->
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="as-js-const" checked class="rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-xs font-medium text-slate-700">JS定数形式で出力</span>
+                        </label>
+                        <div id="var-name-container" class="flex items-center gap-2">
+                            <span class="text-xs text-slate-500 whitespace-nowrap">変数名:</span>
+                            <input type="text" id="var-name" value="THEME_DATABASE" class="w-full text-xs border border-slate-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="convert-numbers" class="rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-xs font-medium text-slate-700">数値を数値型に変換</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="relative flex-grow">
+                    <textarea id="json-output" readonly class="w-full h-full min-h-[350px] p-4 text-xs font-mono bg-slate-900 text-slate-100 border border-slate-700 rounded-xl outline-none resize-none custom-scrollbar" placeholder="変換結果がここに表示されます..."></textarea>
+                    
+                    <div id="status-msg" class="absolute bottom-4 left-4 right-4 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg opacity-0 transition-opacity pointer-events-none text-center shadow-lg">
+                        メッセージ
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <button id="copy-btn" class="flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        コピー
+                    </button>
+                    <button id="download-btn" class="flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        保存 (.js / .json)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使い方アドバイス -->
+        <section class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                <h3 class="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    推奨ヘッダー (1行目)
+                </h3>
+                <code class="text-[11px] bg-white p-2 rounded border border-blue-200 block text-blue-700">
+                    title,genre,grade,year,course,school
+                </code>
+                <p class="text-xs text-blue-600 mt-2">※ 1行目の名前がそのままJavaScriptのキー（プロパティ名）になります。</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    ヒント
+                </h3>
+                <p class="text-xs text-slate-600">ExcelやGoogleスプレッドシートからデータをコピーして、入力エリアに直接貼り付けるだけで変換が始まります。</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const csvInput = document.getElementById('csv-input');
+        const jsonOutput = document.getElementById('json-output');
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const delimiterSelect = document.getElementById('delimiter');
+        const prettyCheck = document.getElementById('pretty-print');
+        const asJsConstCheck = document.getElementById('as-js-const');
+        const varNameInput = document.getElementById('var-name');
+        const convertNumbersCheck = document.getElementById('convert-numbers');
+        const statusMsg = document.getElementById('status-msg');
+
+        function showStatus(text) {
+            statusMsg.textContent = text;
+            statusMsg.classList.remove('opacity-0');
+            setTimeout(() => statusMsg.classList.add('opacity-0'), 2000);
+        }
+
+        function parseCSV(text, delimiter = ',') {
+            const result = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"' && inQuotes && nextChar === '"') {
+                    cell += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (!inQuotes && char === delimiter) {
+                    row.push(cell.trim());
+                    cell = '';
+                } else if (!inQuotes && (char === '\n' || char === '\r')) {
+                    if (cell || row.length > 0) {
+                        row.push(cell.trim());
+                        result.push(row);
+                    }
+                    row = [];
+                    cell = '';
+                    if (char === '\r' && nextChar === '\n') i++;
+                } else {
+                    cell += char;
+                }
+            }
+            if (cell || row.length > 0) {
+                row.push(cell.trim());
+                result.push(row);
+            }
+            return result;
+        }
+
+        function convert() {
+            const rawText = csvInput.value.trim();
+            if (!rawText) {
+                jsonOutput.value = '';
+                return;
+            }
+
+            try {
+                const delimiter = delimiterSelect.value;
+                const rows = parseCSV(rawText, delimiter);
+
+                if (rows.length < 1) {
+                    jsonOutput.value = '[]';
+                    return;
+                }
+
+                const headers = rows[0];
+                const data = rows.slice(1).map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        let value = row[index] !== undefined ? row[index] : null;
+                        
+                        if (value !== null && convertNumbersCheck.checked) {
+                            if (!isNaN(value) && value.trim() !== "") {
+                                value = Number(value);
+                            } else if (value.toLowerCase() === "true") {
+                                value = true;
+                            } else if (value.toLowerCase() === "false") {
+                                value = false;
+                            }
+                        }
+                        obj[header] = value;
+                    });
+                    return obj;
+                });
+
+                const spacing = prettyCheck.checked ? 4 : 0;
+                let finalString = JSON.stringify(data, null, spacing);
+
+                if (asJsConstCheck.checked) {
+                    const varName = varNameInput.value.trim() || 'THEME_DATABASE';
+                    finalString = `const ${varName} = ${finalString};`;
+                }
+
+                jsonOutput.value = finalString;
+            } catch (error) {
+                jsonOutput.value = "エラー: " + error.message;
+            }
+        }
+
+        // 監視対象のイベント
+        [csvInput, delimiterSelect, prettyCheck, asJsConstCheck, varNameInput, convertNumbersCheck].forEach(el => {
+            el.addEventListener('input', convert);
+            el.addEventListener('change', convert);
+        });
+
+        // ドラッグ&ドロップ
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                csvInput.value = e.target.result;
+                convert();
+                showStatus('ファイルを読み込みました');
+            };
+            reader.readAsText(file);
+        }
+
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            csvInput.value = '';
+            convert();
+            showStatus('クリアしました');
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            if (!jsonOutput.value) return;
+            jsonOutput.select();
+            document.execCommand('copy');
+            showStatus('コピーしました');
+        });
+
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const text = jsonOutput.value;
+            if (!text || text.startsWith('エラー')) return;
+
+            const isJs = asJsConstCheck.checked;
+            const blob = new Blob([text], { type: isJs ? 'text/javascript' : 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = isJs ? 'data.js' : 'data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('保存しました');
+        });
+
+        // 変数名の表示制御
+        asJsConstCheck.addEventListener('change', () => {
+            document.getElementById('var-name-container').style.opacity = asJsConstCheck.checked ? '1' : '0.4';
+        });
+    </script>
+</body>
+</html>

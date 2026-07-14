@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Analytics Editor v6 (Responsive & EmptyLines)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+                <span class="text-2xl">📝</span>
+                文字数カウント
+            </h1>
+            <div class="text-xs text-slate-400 font-mono">ver.6.1.0 </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6">
+        <!-- Changed: h-auto for mobile, lg:h-[calc...] for desktop to fix responsiveness -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[calc(100vh-8rem)] h-auto">
+            
+            <!-- Column 1: Input Area (6 cols) -->
+            <!-- Changed: Added min-h-[50vh] for mobile -->
+            <section class="lg:col-span-6 flex flex-col lg:h-full min-h-[50vh] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-3 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                    <span class="text-sm font-semibold text-slate-600">エディター</span>
+                    <span class="text-xs text-slate-400"><span id="header-char-count">0</span> 文字</span>
+                </div>
+                <textarea id="main-textarea"
+                    class="flex-1 w-full p-4 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-base leading-relaxed text-slate-700 placeholder-slate-300"
+                    placeholder="ここにテキストを入力してください..."
+                    spellcheck="false"></textarea>
+            </section>
+
+            <!-- Column 2: Stats Area (3 cols) -->
+            <section class="lg:col-span-3 flex flex-col gap-4 overflow-y-auto pr-1">
+                
+                <!-- Ticket 1: Basic Counts (Always Visible) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shrink-0">
+                    <div class="p-3 bg-slate-100 border-b border-slate-200">
+                        <h2 class="text-sm font-semibold text-slate-600">基本カウント</h2>
+                    </div>
+                    <div class="p-4 grid gap-3">
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">文字数 (空白込み)</span>
+                            <span id="count-chars-all" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">文字数 (空白抜き)</div>
+                                <div class="text-[10px] text-slate-400">スペース・タブ除外</div>
+                            </div>
+                            <span id="count-chars-no-space" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">文字数 (純粋)</div>
+                                <div class="text-[10px] text-slate-400">改行・空白全て除外</div>
+                            </div>
+                            <span id="count-chars-pure" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                        <div class="border-t border-slate-100 my-1"></div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">空白の数</span>
+                            <span id="count-spaces" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">行数</span>
+                            <span id="count-lines" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">段落数</div>
+                                <div class="text-[10px] text-slate-400">空行区切り</div>
+                            </div>
+                            <span id="count-paragraphs" class="text-lg font-bold text-indigo-600 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket 2: Character Types (Collapsible) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shrink-0">
+                    <div class="toggle-header p-3 bg-slate-100 border-b border-slate-200 flex justify-between items-center cursor-pointer hover:bg-slate-200 transition-colors select-none" data-target="type-stats-body">
+                        <h2 class="text-sm font-semibold text-slate-600">文字種別カウント</h2>
+                        <span class="arrow-icon text-slate-400 text-xs transition-transform transform rotate-0">▼</span>
+                    </div>
+                    <div id="type-stats-body" class="hidden p-4 grid gap-3 border-t border-slate-100 bg-white">
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">ひらがな</span>
+                            <span id="type-hiragana" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">カタカナ</span>
+                            <span id="type-katakana" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">漢字</span>
+                            <span id="type-kanji" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="border-t border-slate-100 my-1"></div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">英字 (Aa)</span>
+                            <span id="type-alpha" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">数字 (0-9)</span>
+                            <span id="type-number" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="border-t border-slate-100 my-1"></div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <span class="text-sm text-slate-600 font-medium">句読点 (、。)</span>
+                            <span id="type-punctuation" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">記号・その他</div>
+                                <div class="text-[10px] text-slate-400">上記以外</div>
+                            </div>
+                            <span id="type-others" class="text-base font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Ticket 3: Conversion Stats (Collapsible) -->
+                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shrink-0">
+                    <div class="toggle-header p-3 bg-slate-100 border-b border-slate-200 flex justify-between items-center cursor-pointer hover:bg-slate-200 transition-colors select-none" data-target="conv-stats-body">
+                        <h2 class="text-sm font-semibold text-slate-600">変換カウント</h2>
+                        <span class="arrow-icon text-slate-400 text-xs transition-transform transform rotate-0">▼</span>
+                    </div>
+                    <div id="conv-stats-body" class="hidden p-4 grid gap-3 border-t border-slate-100 bg-white">
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">読了時間</div>
+                                <div class="text-[10px] text-slate-400">約500文字/分</div>
+                            </div>
+                            <div class="text-base font-bold text-slate-700 font-mono">約 <span id="conv-read-time">0</span> 分</div>
+                        </div>
+                        <div class="stat-item flex justify-between items-baseline">
+                            <div>
+                                <div class="text-sm text-slate-600 font-medium">原稿用紙</div>
+                                <div class="text-[10px] text-slate-400">400字詰め</div>
+                            </div>
+                            <div class="text-base font-bold text-slate-700 font-mono"><span id="conv-manuscript">0</span> 枚分</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Column 3: Tools Area (3 cols) -->
+            <section class="lg:col-span-3 flex flex-col gap-4">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
+                    <div class="p-3 bg-slate-100 border-b border-slate-200">
+                        <h2 class="text-sm font-semibold text-slate-600">操作ツール</h2>
+                    </div>
+                    <div class="p-4 text-slate-500 text-sm flex flex-col gap-3">
+                        
+                        <!-- Ticket 4: Deletion Tools -->
+                        <div class="">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">削除・整形ツール</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-remove-newline" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>改行を削除</span>
+                                </label>
+                                <!-- Added: Remove Empty Lines -->
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-remove-empty-lines" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>空白行を削除</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-remove-tab" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>タブを削除</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-trim" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>行頭・行末スペース削除</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-remove-all-space" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>全てのスペース削除</span>
+                                </label>
+                                <div class="border-t border-dashed border-slate-200 my-1"></div>
+                                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                                    <input type="checkbox" id="tool-clean-markdown" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>MD記法削除 (**, #等)</span>
+                                </label>
+                            </div>
+                            <button id="btn-apply-tools" class="mt-3 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium shadow-sm transition-colors flex items-center justify-center gap-2">
+                                <span>実行する</span>
+                            </button>
+                        </div>
+
+                        <div class="border-t border-slate-100 my-2"></div>
+
+                        <!-- Ticket 5: Utilities (Activated) -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-undo" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 text-xs font-medium transition-colors">
+                                ↺ 戻る
+                            </button>
+                            <button id="btn-copy" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 text-xs font-medium transition-colors">
+                                📋 コピー
+                            </button>
+                            <button id="btn-clear" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded text-xs font-medium col-span-2 border border-red-100 transition-colors">
+                                🗑️ クリア
+                            </button>
+                            <button id="btn-save" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-xs font-medium col-span-2 border border-indigo-100 transition-colors">
+                                💾 .txt で保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('main-textarea');
+
+            // DOM Elements for Stats
+            const elHeaderCount = document.getElementById('header-char-count');
+            const elCharsAll = document.getElementById('count-chars-all');
+            const elCharsNoSpace = document.getElementById('count-chars-no-space');
+            const elCharsPure = document.getElementById('count-chars-pure');
+            const elSpaces = document.getElementById('count-spaces');
+            const elLines = document.getElementById('count-lines');
+            const elParagraphs = document.getElementById('count-paragraphs');
+
+            const elTypeHiragana = document.getElementById('type-hiragana');
+            const elTypeKatakana = document.getElementById('type-katakana');
+            const elTypeKanji = document.getElementById('type-kanji');
+            const elTypeAlpha = document.getElementById('type-alpha');
+            const elTypeNumber = document.getElementById('type-number');
+            const elTypePunctuation = document.getElementById('type-punctuation');
+            const elTypeOthers = document.getElementById('type-others');
+
+            const elConvReadTime = document.getElementById('conv-read-time');
+            const elConvManuscript = document.getElementById('conv-manuscript');
+
+            // Ticket 4 & 5 Elements
+            const btnApplyTools = document.getElementById('btn-apply-tools');
+            const chkRemoveNewline = document.getElementById('tool-remove-newline');
+            // Added: Remove Empty Lines Checkbox
+            const chkRemoveEmptyLines = document.getElementById('tool-remove-empty-lines');
+            const chkRemoveTab = document.getElementById('tool-remove-tab');
+            const chkTrim = document.getElementById('tool-trim');
+            const chkRemoveAllSpace = document.getElementById('tool-remove-all-space');
+            const chkCleanMarkdown = document.getElementById('tool-clean-markdown');
+            
+            const btnUndo = document.getElementById('btn-undo');
+            const btnCopy = document.getElementById('btn-copy');
+            const btnClear = document.getElementById('btn-clear');
+            const btnSave = document.getElementById('btn-save');
+
+            // --- Collapsible Logic ---
+            const toggleHeaders = document.querySelectorAll('.toggle-header');
+            toggleHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.getAttribute('data-target');
+                    const targetBody = document.getElementById(targetId);
+                    const arrow = header.querySelector('.arrow-icon');
+                    
+                    if (targetBody && arrow) {
+                        targetBody.classList.toggle('hidden');
+                        if (targetBody.classList.contains('hidden')) {
+                            arrow.style.transform = 'rotate(0deg)';
+                        } else {
+                            arrow.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                });
+            });
+
+
+            // --- State for Undo (Ticket 5) ---
+            let previousTextState = '';
+
+            // Helper for Number Formatting
+            const formatNum = (num) => num.toLocaleString();
+
+            // Main Calculation Function
+            const updateStats = () => {
+                const text = textarea.value;
+
+                // Basic Stats
+                const charsWithSpaces = text.length;
+                const charsNoSpaces = text.replace(/[ 　\t]/g, '').length;
+                const charsPure = text.replace(/\s/g, '').length;
+                const spaceCount = (text.match(/[ 　\t]/g) || []).length;
+                const lines = text.length === 0 ? 0 : text.split(/\n/).length;
+                const paragraphs = text.length === 0 
+                    ? 0 
+                    : text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+
+                // Character Types
+                const countMatch = (regex) => (text.match(regex) || []).length;
+                const countHiragana = countMatch(/[\u3040-\u309F]/g);
+                const countKatakana = countMatch(/[\u30A0-\u30FF]/g);
+                const countKanji = countMatch(/[\u4E00-\u9FFF\u3005-\u3007]/g);
+                const countAlpha = countMatch(/[a-zA-Zａ-ｚＡ-Ｚ]/g);
+                const countNumber = countMatch(/[0-9０-９]/g);
+                const countPunctuation = countMatch(/[、。]/g);
+                const classifiedTotal = countHiragana + countKatakana + countKanji + countAlpha + countNumber + countPunctuation;
+                const countOthers = Math.max(0, charsPure - classifiedTotal);
+
+                // Conversion
+                const readTime = Math.ceil(charsWithSpaces / 500);
+                const manuscriptPages = Math.ceil(charsWithSpaces / 400);
+
+                // Update DOM
+                elHeaderCount.textContent = formatNum(charsWithSpaces);
+                elCharsAll.textContent = formatNum(charsWithSpaces);
+                elCharsNoSpace.textContent = formatNum(charsNoSpaces);
+                elCharsPure.textContent = formatNum(charsPure);
+                elSpaces.textContent = formatNum(spaceCount);
+                elLines.textContent = formatNum(lines);
+                elParagraphs.textContent = formatNum(paragraphs);
+
+                elTypeHiragana.textContent = formatNum(countHiragana);
+                elTypeKatakana.textContent = formatNum(countKatakana);
+                elTypeKanji.textContent = formatNum(countKanji);
+                elTypeAlpha.textContent = formatNum(countAlpha);
+                elTypeNumber.textContent = formatNum(countNumber);
+                elTypePunctuation.textContent = formatNum(countPunctuation);
+                elTypeOthers.textContent = formatNum(countOthers);
+
+                elConvReadTime.textContent = formatNum(readTime);
+                elConvManuscript.textContent = formatNum(manuscriptPages);
+            };
+
+            // Save History (Called before destructive actions)
+            const saveHistory = () => {
+                previousTextState = textarea.value;
+            };
+
+            // --- Ticket 4 Logic ---
+            const applyTools = () => {
+                saveHistory(); // Save state before modifying
+                
+                let currentText = textarea.value;
+                if (chkCleanMarkdown.checked) {
+                    currentText = currentText.replace(/\*\*|__/g, '').replace(/(^|[^\\])\*/g, '$1').replace(/^#+\s+/gm, '').replace(/- \[\s?\]/g, '');
+                }
+                if (chkRemoveTab.checked) currentText = currentText.replace(/\t/g, '');
+                
+                // Trim logic comes before empty line check so lines with just spaces become empty
+                if (chkTrim.checked) currentText = currentText.split('\n').map(line => line.trim()).join('\n');
+                
+                // Added: Remove Empty Lines Logic
+                if (chkRemoveEmptyLines.checked) {
+                    // Splits by newline, filters out lines that are only whitespace, joins back
+                    currentText = currentText.split('\n').filter(line => line.trim() !== '').join('\n');
+                }
+
+                if (chkRemoveNewline.checked) currentText = currentText.replace(/\n/g, '');
+                if (chkRemoveAllSpace.checked) currentText = currentText.replace(/[ 　\t]/g, '');
+
+                textarea.value = currentText;
+                updateStats();
+            };
+
+            // --- Ticket 5 Logic ---
+            
+            // Undo: Revert to previous state
+            const handleUndo = () => {
+                if (previousTextState !== null) {
+                    const temp = textarea.value; // Optional: swap states to allow redo? For now just one-way undo to previous known "safe" state
+                    textarea.value = previousTextState;
+                    // previousTextState = temp; // Uncomment to allow toggle (Redo)
+                    updateStats();
+                }
+            };
+
+            // Copy: Copy text to clipboard
+            const handleCopy = () => {
+                textarea.select();
+                document.execCommand('copy');
+                // Visual feedback could be added here
+                const originalText = btnCopy.textContent;
+                btnCopy.textContent = '✅ コピー完了';
+                setTimeout(() => btnCopy.textContent = originalText, 1500);
+            };
+
+            // Clear: Clear text with confirmation
+            const handleClear = () => {
+                if (textarea.value.length > 0 && confirm('テキストを全て消去しますか？\n（この操作はUndoで戻せます）')) {
+                    saveHistory();
+                    textarea.value = '';
+                    updateStats();
+                }
+            };
+
+            // Save: Download as .txt
+            const handleSave = () => {
+                const text = textarea.value;
+                if (text.length === 0) {
+                    alert('保存するテキストがありません。');
+                    return;
+                }
+                const filename = prompt('ファイル名を入力してください:', 'document.txt');
+                if (filename) {
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            };
+
+            // Event Listeners
+            textarea.addEventListener('input', updateStats);
+            btnApplyTools.addEventListener('click', applyTools);
+            
+            btnUndo.addEventListener('click', handleUndo);
+            btnCopy.addEventListener('click', handleCopy);
+            btnClear.addEventListener('click', handleClear);
+            btnSave.addEventListener('click', handleSave);
+            
+            // Initial call
+            updateStats();
+        });
+    </script>
+</body>
+</html>

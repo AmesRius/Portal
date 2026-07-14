@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Tweak Editor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f8f7;--surface:#ffffff;--surface2:#f3f2ef;--border:#e5e4e0;--border2:#d0cfc9;
+  --text:#1a1a18;--text2:#6b6a66;--text3:#9e9d99;--accent:#5b5bd6;--accent-bg:#eeeeff;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono','Fira Code',monospace;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141413;--surface:#1e1e1c;--surface2:#252523;--border:#2e2e2b;--border2:#3a3a37;
+    --text:#f0efeb;--text2:#9e9d99;--text3:#5a5a57;--accent:#7c7cf0;--accent-bg:#1e1e3a;
+  }
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* toolbar */
+#toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+#toolbar h1{font-size:13px;font-weight:600;color:var(--text);margin-right:4px}
+.sep{width:1px;height:18px;background:var(--border2);flex-shrink:0}
+#file-list{display:flex;gap:4px;flex:1;overflow-x:auto;min-width:0}
+.file-tab{padding:4px 10px;border-radius:var(--radius);border:1px solid transparent;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--text2);background:transparent;font-family:var(--font);transition:all .12s}
+.file-tab:hover{background:var(--surface2);color:var(--text)}
+.file-tab.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+.btn{padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .1s}
+.btn:hover{background:var(--surface2);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{opacity:.88}
+#folder-name{font-size:11px;color:var(--text3);font-family:var(--mono);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* main layout */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* preview */
+#preview-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+#iframe-wrap{flex:1;overflow:hidden;background:var(--surface2);display:flex;align-items:center;justify-content:center}
+#preview-frame{width:100%;height:100%;border:none;background:#fff;display:block}
+#viewport-bar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+#viewport-bar label{font-size:11px;color:var(--text3)}
+.vp-btn{padding:3px 8px;font-size:11px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)}
+.vp-btn.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+#vp-w{width:52px;font-size:11px;padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--mono);text-align:center}
+
+/* panel */
+#panel{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--surface);overflow:hidden}
+#panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.ptab{flex:1;padding:8px 4px;font-size:12px;text-align:center;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;background:transparent;border-top:none;border-left:none;border-right:none;font-family:var(--font);transition:all .1s}
+.ptab:hover{color:var(--text)}
+.ptab.active{color:var(--accent);border-bottom-color:var(--accent)}
+#panel-body{flex:1;overflow-y:auto;padding:12px}
+
+/* inspector / element picker */
+#element-path{font-size:11px;color:var(--text3);font-family:var(--mono);padding:6px 12px;background:var(--surface2);border-bottom:1px solid var(--border);min-height:26px;word-break:break-all;flex-shrink:0}
+
+/* controls */
+.section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+.ctrl-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.ctrl-row label{font-size:12px;color:var(--text2);flex:0 0 90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-row input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.ctrl-val{font-size:11px;font-family:var(--mono);color:var(--text);min-width:46px;text-align:right}
+.ctrl-row input[type=color]{width:28px;height:22px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;padding:1px;background:transparent}
+.ctrl-row input[type=text]{flex:1;padding:3px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:11px}
+.color-hex{font-size:11px;font-family:var(--mono);color:var(--text3);flex:1;min-width:0;word-break:break-all}
+select{padding:3px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:12px;flex:1}
+
+/* code panel */
+#code-out{font-family:var(--mono);font-size:11px;line-height:1.6;padding:8px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);white-space:pre-wrap;word-break:break-all;color:var(--text2);min-height:80px;max-height:200px;overflow-y:auto}
+.copy-btn{margin-top:8px;width:100%}
+
+/* empty state */
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:16px;color:var(--text3)}
+#empty svg{opacity:.3}
+#empty p{font-size:14px}
+
+/* overlay pick mode */
+body.pick-mode #preview-frame{cursor:crosshair;outline:3px dashed var(--accent)}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>UI Tweak</h1>
+  <div class="sep"></div>
+  <button class="btn primary" onclick="openFolder()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>フォルダを開く
+  </button>
+  <div id="folder-name">フォルダ未選択</div>
+  <div class="sep"></div>
+  <div id="file-list"></div>
+  <div class="sep"></div>
+  <button class="btn" id="pick-btn" onclick="togglePickMode()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>要素を選ぶ
+  </button>
+  <button class="btn" onclick="exportCSS()">CSSをコピー</button>
+  <button class="btn" onclick="saveFile()">💾 保存</button>
+</div>
+
+<div id="main">
+  <div id="preview-wrap">
+    <div id="element-path">要素を選択してください</div>
+    <div id="iframe-wrap">
+      <div id="empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <p>「フォルダを開く」でHTMLファイルを読み込む</p>
+      </div>
+      <iframe id="preview-frame" style="display:none" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+    <div id="viewport-bar">
+      <label>プレビュー幅</label>
+      <button class="vp-btn active" onclick="setVP('100%','')">フル</button>
+      <button class="vp-btn" onclick="setVP('1280px','デスクトップ')">PC</button>
+      <button class="vp-btn" onclick="setVP('768px','タブレット')">タブレット</button>
+      <button class="vp-btn" onclick="setVP('390px','スマホ')">スマホ</button>
+      <input id="vp-w" type="text" value="100%" onchange="setVP(this.value,'')">
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="panel-tabs">
+      <button class="ptab active" onclick="switchPanel('style')">スタイル</button>
+      <button class="ptab" onclick="switchPanel('box')">ボックス</button>
+      <button class="ptab" onclick="switchPanel('code')">コード</button>
+    </div>
+    <div id="panel-body">
+      <div id="tab-style">
+        <div id="no-sel" style="color:var(--text3);font-size:12px;padding:8px 0">要素を選択するとスタイルを編集できます</div>
+        <div id="style-controls" style="display:none"></div>
+      </div>
+      <div id="tab-box" style="display:none">
+        <div id="no-sel-box" style="color:var(--text3);font-size:12px;padding:8px 0">要素を選択するとボックスモデルを編集できます</div>
+        <div id="box-controls" style="display:none"></div>
+      </div>
+      <div id="tab-code" style="display:none">
+        <div class="section-label">適用済みCSS差分</div>
+        <div id="code-out">スタイルを変更すると差分が表示されます</div>
+        <button class="btn copy-btn" onclick="copyCode()">CSS差分をコピー</button>
+        <div class="section-label" style="margin-top:16px">適用済み変更一覧</div>
+        <div id="changes-list" style="font-size:11px;font-family:var(--mono);color:var(--text2);line-height:1.8"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="folder-input" webkitdirectory multiple style="display:none" onchange="handleFolder(event)">
+
+<script>
+let files={},currentFile=null,selectedEl=null,pickMode=false;
+let changes={};
+let docClone=null;
+
+function openFolder(){document.getElementById('folder-input').click()}
+
+function handleFolder(e){
+  const fl=[...e.target.files];
+  files={};
+  fl.forEach(f=>{
+    const name=basename(f.webkitRelativePath||f.name);
+    files[name]=f;
+  });
+  const htmlFiles=fl.filter(f=>{const n=basename(f.name);return n.endsWith('.html')||n.endsWith('.htm')});
+  if(!htmlFiles.length){alert('HTMLファイルが見つかりません');return}
+  const folderName=fl[0].webkitRelativePath.split('/')[0]||'フォルダ';
+  const cssCount=fl.filter(f=>f.name.endsWith('.css')).length;
+  const jsCount=fl.filter(f=>f.name.endsWith('.js')).length;
+  const imgCount=fl.filter(f=>/\.(png|jpe?g|gif|svg|webp)$/i.test(f.name)).length;
+  document.getElementById('folder-name').textContent=`${folderName} (CSS:${cssCount} JS:${jsCount} 画像:${imgCount})`;
+  const list=document.getElementById('file-list');
+  list.innerHTML='';
+  htmlFiles.forEach((f,i)=>{
+    const btn=document.createElement('button');
+    btn.className='file-tab'+(i===0?' active':'');
+    btn.textContent=basename(f.name);
+    btn.onclick=()=>loadFile(f,btn);
+    list.appendChild(btn);
+  });
+  loadFile(htmlFiles[0],list.querySelector('.file-tab'));
+}
+
+async function readText(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file)});
+}
+async function readDataURL(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file)});
+}
+
+function basename(path){return path.split('/').pop()}
+function resolveName(base,rel){
+  if(!rel||rel.startsWith('http')||rel.startsWith('data:'))return null;
+  const parts=rel.split('?')[0].split('#')[0];
+  return basename(parts);
+}
+
+async function inlineHTML(html){
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(html,'text/html');
+
+  const links=[...doc.querySelectorAll('link[rel="stylesheet"][href]')];
+  for(const link of links){
+    const name=resolveName('',link.getAttribute('href'));
+    if(name&&files[name]){
+      const css=await readText(files[name]);
+      const st=doc.createElement('style');
+      st.setAttribute('data-src',name);
+      st.textContent=css;
+      link.replaceWith(st);
+    }
+  }
+
+  const scripts=[...doc.querySelectorAll('script[src]')];
+  for(const scr of scripts){
+    const name=resolveName('',scr.getAttribute('src'));
+    if(name&&files[name]){
+      const js=await readText(files[name]);
+      const ns=doc.createElement('script');
+      ns.setAttribute('data-src',name);
+      ns.textContent=js;
+      scr.replaceWith(ns);
+    }
+  }
+
+  const imgs=[...doc.querySelectorAll('img[src]')];
+  for(const img of imgs){
+    const name=resolveName('',img.getAttribute('src'));
+    if(name&&files[name]){
+      const du=await readDataURL(files[name]);
+      img.setAttribute('src',du);
+    }
+  }
+
+  return '<!DOCTYPE html>\n'+doc.documentElement.outerHTML;
+}
+
+async function loadFile(file,btn){
+  document.querySelectorAll('.file-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFile=file;
+  selectedEl=null;
+  changes={};
+  updateCodePanel();
+  document.getElementById('element-path').textContent='読み込み中...';
+  const raw=await readText(file);
+  const html=await inlineHTML(raw);
+  const frame=document.getElementById('preview-frame');
+  frame.style.display='block';
+  document.getElementById('empty').style.display='none';
+  frame.srcdoc=html;
+  frame.onload=()=>{
+    setupFrameEvents(frame);
+    document.getElementById('element-path').textContent='要素を選択してください';
+  };
+}
+
+function setupFrameEvents(frame){
+  try{
+    const doc=frame.contentDocument;
+    if(!doc)return;
+    doc.addEventListener('click',e=>{
+      if(!pickMode)return;
+      e.preventDefault();
+      e.stopPropagation();
+      selectElement(e.target,doc);
+    },true);
+    doc.addEventListener('mouseover',e=>{
+      if(!pickMode)return;
+      doc.querySelectorAll('[data-tweak-hover]').forEach(el=>el.removeAttribute('data-tweak-hover'));
+      e.target.setAttribute('data-tweak-hover','1');
+    },true);
+    if(!doc.getElementById('tweak-style')){
+      const st=doc.createElement('style');
+      st.id='tweak-style';
+      st.textContent='[data-tweak-hover]{outline:2px solid #5b5bd680!important}[data-tweak-sel]{outline:2px solid #5b5bd6!important}';
+      doc.head.appendChild(st);
+    }
+  }catch(err){}
+}
+
+function togglePickMode(){
+  pickMode=!pickMode;
+  document.body.classList.toggle('pick-mode',pickMode);
+  document.getElementById('pick-btn').style.background=pickMode?'var(--accent-bg)':'';
+  document.getElementById('pick-btn').style.color=pickMode?'var(--accent)':'';
+  document.getElementById('pick-btn').style.borderColor=pickMode?'var(--accent)':'';
+}
+
+function selectElement(el,doc){
+  if(selectedEl)selectedEl.removeAttribute('data-tweak-sel');
+  selectedEl=el;
+  el.setAttribute('data-tweak-sel','1');
+  togglePickMode();
+  const path=getPath(el);
+  document.getElementById('element-path').textContent=path;
+  buildStylePanel(el);
+  buildBoxPanel(el);
+}
+
+function getPath(el){
+  const parts=[];
+  let cur=el;
+  while(cur&&cur.tagName){
+    let s=cur.tagName.toLowerCase();
+    if(cur.id)s+='#'+cur.id;
+    else if(cur.className&&typeof cur.className==='string'){
+      const c=cur.className.trim().split(/\s+/)[0];
+      if(c)s+='.'+c;
+    }
+    parts.unshift(s);
+    cur=cur.parentElement;
+    if(parts.length>4)break;
+  }
+  return parts.join(' > ');
+}
+
+function getCS(el,prop){
+  try{return el.ownerDocument.defaultView.getComputedStyle(el).getPropertyValue(prop)||''}catch{return ''}
+}
+
+function toRgbHex(v){
+  const m=v.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if(!m)return v;
+  return '#'+[m[1],m[2],m[3]].map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+function buildStylePanel(el){
+  document.getElementById('no-sel').style.display='none';
+  const sc=document.getElementById('style-controls');
+  sc.style.display='block';
+  const cs=el.ownerDocument.defaultView.getComputedStyle(el);
+  sc.innerHTML='';
+
+  const groups=[
+    {label:'テキスト',props:[
+      {name:'color',label:'文字色',type:'color'},
+      {name:'font-size',label:'フォントサイズ',type:'px',min:8,max:96},
+      {name:'font-weight',label:'太さ',type:'range',min:100,max:900,step:100},
+      {name:'line-height',label:'行間',type:'range',min:1,max:3,step:0.1,unit:''},
+      {name:'letter-spacing',label:'字間',type:'px',min:-2,max:10},
+      {name:'text-align',label:'揃え',type:'select',options:['left','center','right','justify']},
+    ]},
+    {label:'背景・ボーダー',props:[
+      {name:'background-color',label:'背景色',type:'color'},
+      {name:'border-radius',label:'角丸',type:'px',min:0,max:60},
+      {name:'border-width',label:'枠線の太さ',type:'px',min:0,max:16},
+      {name:'border-color',label:'枠線の色',type:'color'},
+      {name:'border-style',label:'枠線スタイル',type:'select',options:['none','solid','dashed','dotted']},
+      {name:'opacity',label:'透明度',type:'range',min:0,max:1,step:0.01,unit:''},
+    ]},
+  ];
+
+  groups.forEach(g=>{
+    const lbl=document.createElement('div');
+    lbl.className='section-label';
+    lbl.textContent=g.label;
+    sc.appendChild(lbl);
+    g.props.forEach(p=>{
+      const row=document.createElement('div');
+      row.className='ctrl-row';
+      const lbl2=document.createElement('label');
+      lbl2.textContent=p.label;
+      row.appendChild(lbl2);
+      let rawVal=cs.getPropertyValue(p.name)||'';
+      if(p.type==='color'){
+        const inp=document.createElement('input');
+        inp.type='color';
+        inp.value=toRgbHex(rawVal)||'#000000';
+        const hex=document.createElement('span');
+        hex.className='color-hex';
+        hex.textContent=inp.value;
+        inp.oninput=()=>{hex.textContent=inp.value;applyStyle(el,p.name,inp.value)};
+        row.appendChild(inp);row.appendChild(hex);
+      }else if(p.type==='px'||p.type==='range'){
+        const num=parseFloat(rawVal)||0;
+        const inp=document.createElement('input');
+        inp.type='range';
+        inp.min=p.min??0;inp.max=p.max??100;inp.step=p.step??1;
+        inp.value=num;
+        const val=document.createElement('span');
+        val.className='ctrl-val';
+        const unit=p.unit!==undefined?p.unit:(p.type==='px'?'px':'');
+        val.textContent=parseFloat(num).toFixed(p.step&&p.step<1?1:0)+unit;
+        inp.oninput=()=>{
+          val.textContent=parseFloat(inp.value).toFixed(p.step&&p.step<1?1:0)+unit;
+          applyStyle(el,p.name,inp.value+(p.type==='px'?'px':''));
+        };
+        row.appendChild(inp);row.appendChild(val);
+      }else if(p.type==='select'){
+        const sel=document.createElement('select');
+        p.options.forEach(o=>{
+          const opt=document.createElement('option');
+          opt.value=o;opt.textContent=o;
+          if(rawVal.includes(o))opt.selected=true;
+          sel.appendChild(opt);
+        });
+        sel.onchange=()=>applyStyle(el,p.name,sel.value);
+        row.appendChild(sel);
+      }
+      sc.appendChild(row);
+    });
+  });
+}
+
+function buildBoxPanel(el){
+  document.getElementById('no-sel-box').style.display='none';
+  const bc=document.getElementById('box-controls');
+  bc.style.display='block';
+  const cs=el.ownerDocument.defaultView.getComputedStyle(el);
+  bc.innerHTML='';
+
+  const boxProps=[
+    {label:'マージン',props:[
+      {name:'margin-top',label:'上'},
+      {name:'margin-right',label:'右'},
+      {name:'margin-bottom',label:'下'},
+      {name:'margin-left',label:'左'},
+    ]},
+    {label:'パディング',props:[
+      {name:'padding-top',label:'上'},
+      {name:'padding-right',label:'右'},
+      {name:'padding-bottom',label:'下'},
+      {name:'padding-left',label:'左'},
+    ]},
+    {label:'サイズ',props:[
+      {name:'width',label:'width',max:1200},
+      {name:'height',label:'height',max:800},
+      {name:'min-width',label:'min-width',max:800},
+      {name:'max-width',label:'max-width',max:1600},
+    ]},
+  ];
+
+  boxProps.forEach(g=>{
+    const lbl=document.createElement('div');
+    lbl.className='section-label';
+    lbl.textContent=g.label;
+    bc.appendChild(lbl);
+    g.props.forEach(p=>{
+      const row=document.createElement('div');
+      row.className='ctrl-row';
+      const l=document.createElement('label');
+      l.textContent=p.label;
+      row.appendChild(l);
+      const v=parseFloat(cs.getPropertyValue(p.name))||0;
+      const inp=document.createElement('input');
+      inp.type='range';inp.min=0;inp.max=p.max||200;inp.step=1;inp.value=v;
+      const val=document.createElement('span');
+      val.className='ctrl-val';
+      val.textContent=v+'px';
+      inp.oninput=()=>{val.textContent=inp.value+'px';applyStyle(el,p.name,inp.value+'px')};
+      row.appendChild(inp);row.appendChild(val);
+      bc.appendChild(row);
+    });
+  });
+}
+
+function applyStyle(el,prop,value){
+  el.style.setProperty(prop,value);
+  const path=getPath(el);
+  if(!changes[path])changes[path]={};
+  changes[path][prop]=value;
+  updateCodePanel();
+}
+
+function updateCodePanel(){
+  let out='';
+  Object.entries(changes).forEach(([sel,props])=>{
+    out+=sel+' {\n';
+    Object.entries(props).forEach(([p,v])=>{out+='  '+p+': '+v+';\n'});
+    out+='}\n\n';
+  });
+  document.getElementById('code-out').textContent=out||'変更なし';
+  const list=document.getElementById('changes-list');
+  let html='';
+  Object.entries(changes).forEach(([sel,props])=>{
+    Object.entries(props).forEach(([p,v])=>{html+=`<div style="padding:2px 0"><span style="color:var(--text3)">${sel}</span>  <span style="color:var(--accent)">${p}</span>: ${v}</div>`});
+  });
+  list.innerHTML=html||'<span style="color:var(--text3)">変更なし</span>';
+}
+
+function copyCode(){
+  const text=document.getElementById('code-out').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.querySelector('.copy-btn');
+    btn.textContent='コピーしました！';
+    setTimeout(()=>btn.textContent='CSS差分をコピー',2000);
+  });
+}
+
+function exportCSS(){
+  let out='/* UI Tweak Editor — CSS差分 */\n\n';
+  Object.entries(changes).forEach(([sel,props])=>{
+    out+=sel+' {\n';
+    Object.entries(props).forEach(([p,v])=>{out+='  '+p+': '+v+';\n'});
+    out+='}\n\n';
+  });
+  navigator.clipboard.writeText(out).then(()=>{
+    alert('CSS差分をクリップボードにコピーしました');
+  });
+}
+
+async function saveFile(){
+  if(!currentFile){alert('ファイルが選択されていません');return}
+  const frame=document.getElementById('preview-frame');
+  try{
+    const html=frame.contentDocument.documentElement.outerHTML;
+    const blob=new Blob(['<!DOCTYPE html>\n'+html],{type:'text/html'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=basename(currentFile.name);
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){alert('保存に失敗しました: '+e.message)}
+}
+
+function setVP(width,label){
+  const frame=document.getElementById('preview-frame');
+  const wrap=document.getElementById('iframe-wrap');
+  document.querySelectorAll('.vp-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(width==='100%'){
+    frame.style.width='100%';
+    wrap.style.justifyContent='stretch';
+  }else{
+    frame.style.width=width;
+    wrap.style.justifyContent='center';
+  }
+  document.getElementById('vp-w').value=width;
+}
+
+function switchPanel(name){
+  ['style','box','code'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+  document.querySelectorAll('.ptab').forEach((b,i)=>{
+    b.classList.toggle('active',['style','box','code'][i]===name);
+  });
+}
+</script>
+</body>
+</html>

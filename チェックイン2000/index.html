@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Question Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Check-in Generator</h1>
+      <p>今日のチームにぴったりの「問い」を見つけよう</p>
+    </header>
+
+    <main>
+      <div class="filter-area">
+        <select id="genreFilter">
+          <option value="all">すべてのジャンル 🎲</option>
+          <option value="日常・振り返り">日常・振り返り 📅</option>
+          <option value="趣味・エンタメ">趣味・エンタメ 🎬</option>
+          <option value="価値観">価値観 💡</option>
+          <option value="食・ライフスタイル">食・ライフスタイル ☕</option>
+          <option value="もしもの話">もしもの話 🌌</option>
+          <option value="究極の2択">究極の2択 ⚖️</option>
+        </select>
+      </div>
+
+      <div class="card-wrapper">
+        <div id="questionCard" class="card">
+          <span id="genreLabel" class="genre-label">START</span>
+          <h2 id="questionText">下のボタンを押して質問を生成してください</h2>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="nextBtn" class="btn primary-btn">次の質問へ</button>
+        <button id="copyBtn" class="btn secondary-btn" disabled>コピー</button>
+      </div>
+    </main>
+    
+    <div id="toast" class="toast">コピーしました！</div>
+  </div>
+
+  <script src="json.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

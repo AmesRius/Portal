@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>心理尺度テンプレートジェネレーター</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f7f6; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #eee; }
+        input[type="text"] { width: 95%; padding: 5px; }
+        select { padding: 5px; }
+        button { background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background-color: #2980b9; }
+        .remove-btn { background-color: #e74c3c; }
+        .remove-btn:hover { background-color: #c0392b; }
+        textarea { width: 100%; height: 200px; padding: 10px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>心理尺度テンプレートジェネレーター</h1>
+    
+    <div class="container">
+        <h2>1. 尺度名の設定</h2>
+        <input type="text" id="scaleName" value="独立・相互依存的自己理解尺度" style="width: 50%; font-size: 16px;">
+    </div>
+
+    <div class="container">
+        <h2>2. 質問項目の編集</h2>
+        <table id="questionsTable">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">ID</th>
+                    <th style="width: 45%;">質問項目</th>
+                    <th style="width: 30%;">選択肢 (カンマ区切り)</th>
+                    <th style="width: 10%;">採点ルール</th>
+                    <th style="width: 10%;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td class="q-id">1</td>
+                    <td><input type="text" class="q-text" value="A:まわりの人の意見に合わせる B:自分の意見を主張する"></td>
+                    <td><input type="text" class="q-options" value="Aにぴったりとあてはまる,どちらかといえばA,どちらかといえばB,Bにぴったりとあてはまる"></td>
+                    <td>
+                        <select class="q-rule">
+                            <option value="通常">通常</option>
+                            <option value="反転" selected>反転</option>
+                        </select>
+                    </td>
+                    <td><button class="remove-btn" onclick="removeRow(this)">削除</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button onclick="addRow()">+ 質問を追加</button>
+    </div>
+
+    <div class="container">
+        <h2>3. コードの生成</h2>
+        <button onclick="generateOutputs()" style="background-color: #2ecc71; font-size: 16px;">生成する</button>
+    </div>
+
+    <div class="container">
+        <h2>スプレッドシート用データ (コピペ用)</h2>
+        <p>※以下のテキストをコピーして、スプレッドシートのA1セルに貼り付け、「データ」＞「テキストを列に分割」を行ってください。</p>
+        <textarea id="csvOutput" readonly></textarea>
+        
+        <h2>Google Apps Script コード</h2>
+        <textarea id="gasOutput" readonly></textarea>
+    </div>
+
+    <script>
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const rowCount = tbody.rows.length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="q-id">${rowCount}</td>
+                <td><input type="text" class="q-text" placeholder="質問を入力"></td>
+                <td><input type="text" class="q-options" value="全くあてはまらない,あまりあてはまらない,どちらともいえない,ややあてはまる,非常によくあてはまる"></td>
+                <td>
+                    <select class="q-rule">
+                        <option value="通常" selected>通常</option>
+                        <option value="反転">反転</option>
+                    </select>
+                </td>
+                <td><button class="remove-btn" onclick="removeRow(this)">削除</button></td>
+            `;
+            tbody.appendChild(tr);
+            updateIDs();
+        }
+
+        function removeRow(btn) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            updateIDs();
+        }
+
+        function updateIDs() {
+            const rows = document.getElementById('tableBody').rows;
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].querySelector('.q-id').innerText = i + 1;
+            }
+        }
+
+        function generateOutputs() {
+            const scaleName = document.getElementById('scaleName').value;
+            const rows = document.getElementById('tableBody').rows;
+            
+            // CSV生成
+            let csv = "id\t質問項目\t選択肢\t下位尺度（反転フラグ）\n";
+            let maxScore = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                let id = rows[i].querySelector('.q-id').innerText;
+                let text = rows[i].querySelector('.q-text').value;
+                let options = rows[i].querySelector('.q-options').value;
+                let rule = rows[i].querySelector('.q-rule').value;
+                
+                csv += `${id}\t${text}\t${options}\t${rule}\n`;
+                
+                // 簡易的に最大スコアを計算 (選択肢の数)
+                maxScore += options.split(',').length;
+            }
+            document.getElementById('csvOutput').value = csv;
+
+            // GASコード生成
+            const gasCode = `// ==========================================
+// 1. フォームの自動生成
+// ==========================================
+function createFormFromSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Questions');
+  const data = sheet.getDataRange().getValues();
+  
+  const form = FormApp.create('${scaleName}');
+  form.setDescription('以下の質問に対して、最もあてはまるものを選択してください。');
+  form.setCollectEmail(true);
+  
+  for (let i = 1; i < data.length; i++) {
+    let id = data[i][0];
+    let questionText = data[i][1];
+    let optionsStr = data[i][2];
+    
+    if (!id) continue;
+    
+    let item = form.addMultipleChoiceItem();
+    item.setTitle(\`Q\${id}. \${questionText}\`);
+    item.setChoiceValues(optionsStr.split(','));
+    item.setRequired(true);
+  }
+  
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  Logger.log('フォーム作成完了: ' + form.getEditUrl());
+}
+
+// ==========================================
+// 2. 回答の自動採点とメール送信
+// ==========================================
+function onFormSubmit(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const qSheet = ss.getSheetByName('Questions');
+  const qData = qSheet.getDataRange().getValues();
+  
+  let scoringRules = {};
+  for (let i = 1; i < qData.length; i++) {
+    scoringRules[\`Q\${qData[i][0]}\`] = qData[i][3];
+  }
+
+  const itemResponses = e.response.getItemResponses();
+  const respondentEmail = e.response.getRespondentEmail();
+  
+  let totalScore = 0;
+  let scoreDetails = "";
+  
+  for (let i = 0; i < itemResponses.length; i++) {
+    let itemResponse = itemResponses[i];
+    let qId = itemResponse.getItem().getTitle().split('.')[0]; 
+    let answer = itemResponse.getResponse();
+    let options = itemResponse.getItem().asMultipleChoiceItem().getChoices().map(c => c.getValue());
+    
+    let rule = scoringRules[qId];
+    let score = 0;
+    
+    let answerIndex = options.indexOf(answer);
+    if (answerIndex !== -1) {
+      if (rule === "通常") {
+        score = options.length - answerIndex; // 上から高得点の場合
+      } else if (rule === "反転") {
+        score = answerIndex + 1; // 下から高得点の場合
+      }
+    }
+    
+    totalScore += score;
+    scoreDetails += \`\${qId}: \${score}点\\n\`;
+  }
+  
+  const subject = "【${scaleName}】回答結果のお知らせ";
+  const body = \`ご回答ありがとうございました。\\n\\n\` +
+               \`あなたのスコアは【 \${totalScore}点 / ${maxScore}点 】です。\\n\\n\` +
+               \`▼ 詳細スコア ▼\\n\${scoreDetails}\`;
+               
+  MailApp.sendEmail(respondentEmail, subject, body);
+}`;
+            document.getElementById('gasOutput').value = gasCode;
+        }
+    </script>
+</body>
+</html>
