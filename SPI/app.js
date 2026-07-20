@@ -1,3 +1,29 @@
+// ===================== グローバルリセット機能のバインド =====================
+const resetBtn = id('global_reset_btn');
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    // 1. 画面内のすべての数値入力・テキスト入力を取得して空にする
+    const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+    inputs.forEach(input => {
+      // 支払い回数などの input[step="1"] や disabled なものは除外したい場合は条件を変更してください
+      input.value = '';
+    });
+
+    // 2. 入力イベントを人工的に発生させて、各コンポーネントの calc() 処理を走らせる
+    // これにより、出力先のテキストが自動的に「―」や初期状態に戻ります
+    inputs.forEach(input => {
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    
+    // 💡 単位のセレクトボックスも初期状態（日 など）に戻したい場合は以下を設定
+    const unitSelect = id('buntan_unit');
+    if (unitSelect) {
+      unitSelect.value = '時間'; // または '日'
+      unitSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+}
+
 // ===================== ユーティリティ =====================
 const num = v => {
   const n = parseFloat(v);
@@ -349,27 +375,41 @@ const TOOLS = [
       [dcb, dch, dcr].forEach(el => el.addEventListener('input', calcDC));
     }
   },
-  // 6. 分担計算
+// 6. 分担計算
   {
     id: 'buntan', label: '分担計算', glyph: '分',
     render: () => `
+      <!-- 単位選択の追加 -->
+      <div class="card" style="margin-bottom: 12px; padding: 12px;">
+        <div class="field-row" style="margin-bottom: 0;">
+          <label>計算に使用する単位</label>
+          <div class="inputs">
+            <select id="buntan_unit" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;">
+              <option value="日" selected>日 (days)</option>
+              <option value="時間">時間 (hours)</option>
+              <option value="分">分 (minutes)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
-        <p class="card-title">仕事算: 複数人(最大4人)で終える日数</p>
-        <p class="card-hint">例題:「Xは6日、Yは10日かかる仕事を2人でやると何日か」空欄は無視</p>
-        <div class="field-row"><label>Aが1人で終える日数</label><div class="inputs"><input type="number" id="a_days" placeholder="6"><span class="unit-label">日</span></div></div>
-        <div class="field-row"><label>Bが1人で終える日数</label><div class="inputs"><input type="number" id="b_days" placeholder="10"><span class="unit-label">日</span></div></div>
-        <div class="field-row"><label>Cが1人で終える日数(任意)</label><div class="inputs"><input type="number" id="c_days" placeholder="15"><span class="unit-label">日</span></div></div>
-        <div class="field-row"><label>Dが1人で終える日数(任意)</label><div class="inputs"><input type="number" id="d_days" placeholder=""><span class="unit-label">日</span></div></div>
-        <div class="out-row"><span class="out-label">各自の1日の仕事量</span><span class="out-val small" id="rates_out">―</span></div>
-        <div class="out-row"><span class="out-label">全員でかかる日数</span><span class="out-val" id="together_out">―</span></div>
+        <p class="card-title">仕事算: 複数人(最大4人)で終える<span class="unit-text">日数</span></p>
+        <p class="card-hint">例題:「Xは6<span class="unit-text">日</span>、Yは10<span class="unit-text">日</span>かかる仕事を2人でやると何<span class="unit-text">日</span>か」空欄は無視</p>
+        <div class="field-row"><label>Aが1人で終える<span class="unit-text">日数</span></label><div class="inputs"><input type="number" id="a_days" placeholder="6"><span class="unit-label">日</span></div></div>
+        <div class="field-row"><label>Bが1人で終える<span class="unit-text">日数</span></label><div class="inputs"><input type="number" id="b_days" placeholder="10"><span class="unit-label">日</span></div></div>
+        <div class="field-row"><label>Cが1人で終える<span class="unit-text">日数</span>(任意)</label><div class="inputs"><input type="number" id="c_days" placeholder="15"><span class="unit-label">日</span></div></div>
+        <div class="field-row"><label>Dが1人で終える<span class="unit-text">日数</span>(任意)</label><div class="inputs"><input type="number" id="d_days" placeholder=""><span class="unit-label">日</span></div></div>
+        <div class="out-row"><span class="out-label">各自の1<span class="unit-text-rate">日</span>の仕事量</span><span class="out-val small" id="rates_out">―</span></div>
+        <div class="out-row"><span class="out-label">全員でかかる<span class="unit-text">日数</span></span><span class="out-val" id="together_out">―</span></div>
       </div>
       <div class="card">
         <p class="card-title">途中交代・分担型</p>
-        <p class="card-hint">例題:「アヤ1人30日、アヤとエビ2人で18日。アヤが1人で始め途中エビに交代、合計33日で終了。アヤは何日？」</p>
-        <div class="field-row"><label>1人目が1人でやる日数</label><div class="inputs"><input type="number" id="sw_a_alone" placeholder="30"><span class="unit-label">日</span></div></div>
-        <div class="field-row"><label>2人一緒だと何日</label><div class="inputs"><input type="number" id="sw_together" placeholder="18"><span class="unit-label">日</span></div></div>
-        <div class="field-row"><label>実際にかかった合計日数</label><div class="inputs"><input type="number" id="sw_total" placeholder="33"><span class="unit-label">日</span></div></div>
-        <div class="out-row"><span class="out-label">1人目(前半)が作業した日数</span><span class="out-val" id="sw_out">―</span></div>
+        <p class="card-hint">例題:「アヤ1人30<span class="unit-text">日</span>、アヤとエビ2人で18<span class="unit-text">日</span>。アヤが1人で始め途中エビに交代、合計33<span class="unit-text">日</span>で終了。アヤは何<span class="unit-text">日</span>？」</p>
+        <div class="field-row"><label>1人目が1人でやる<span class="unit-text">日数</span></label><div class="inputs"><input type="number" id="sw_a_alone" placeholder="30"><span class="unit-label">日</span></div></div>
+        <div class="field-row"><label>2人一緒だと何<span class="unit-text">日</span></label><div class="inputs"><input type="number" id="sw_together" placeholder="18"><span class="unit-label">日</span></div></div>
+        <div class="field-row"><label>実際にかかった合計<span class="unit-text">日数</span></label><div class="inputs"><input type="number" id="sw_total" placeholder="33"><span class="unit-label">日</span></div></div>
+        <div class="out-row"><span class="out-label">1人目(前半)が作業した<span class="unit-text">日数</span></span><span class="out-val" id="sw_out">―</span></div>
       </div>
       <div class="card">
         <p class="card-title">分割払い</p>
@@ -380,34 +420,65 @@ const TOOLS = [
         <div class="out-row"><span class="out-label">既払い額</span><span class="out-val" id="dp_paidamt_out">―</span></div>
         <div class="out-row"><span class="out-label">残額</span><span class="out-val" id="dp_remain_out">―</span></div>
       </div>
-      <p class="divider-hint">仕事算公式: 1÷(各自の1日仕事量の合計)=共同日数 ／ 途中交代は連立方程式で解く</p>
+      <p class="divider-hint" id="buntan_formula_hint">仕事算公式: 1÷(各自の1日の仕事量の合計)=共同日数 ／ 途中交代は連立方程式で解く</p>
     `,
     bind: () => {
+      const uSelect = id('buntan_unit');
       const a = id('a_days'), b = id('b_days'), c = id('c_days'), d = id('d_days');
+      const swa = id('sw_a_alone'), swt = id('sw_together'), swtot = id('sw_total');
+      const dt = id('dp_total'), dn = id('dp_n'), dp = id('dp_paid');
+
+      // 単位表記の更新処理
+      const updateUnitLabels = () => {
+        const unit = uSelect.value; // 「日」「時間」「分」
+        
+        // 語尾やラベル用（日数 -> 時間数 / 分数）
+        const unitText = unit === '日' ? '日数' : unit === '時間' ? '時間' : '分';
+        // 単一文字用（1日 -> 1時間 / 1分）
+        const unitTextRate = unit;
+
+        // 静的テキストの一括置換（レンダリングされたDOM要素内の対象クラスを書き換え）
+        document.querySelectorAll('.card .unit-label').forEach(el => {
+          if (el.textContent !== '円' && el.textContent !== '回') el.textContent = unit;
+        });
+        document.querySelectorAll('.card .unit-text').forEach(el => el.textContent = unitText);
+        document.querySelectorAll('.card .unit-text-rate').forEach(el => el.textContent = unitTextRate);
+        
+        // 公式ヒント部分の更新
+        const formulaHint = id('buntan_formula_hint');
+        if (formulaHint) {
+          formulaHint.textContent = `仕事算公式: 1÷(各自の1${unit}の仕事量の合計)=共同${unitText} ／ 途中交代は連立方程式で解く`;
+        }
+
+        // 単位が変わったら再計算
+        calc();
+        calcSw();
+      };
+
       const calc = () => {
+        const unit = uSelect.value;
         const vals = [num(a.value), num(b.value), num(c.value), num(d.value)].filter(v => v !== null && v > 0);
         if (vals.length < 1) { setText('rates_out', '―'); setText('together_out', '―'); return; }
         const rates = vals.map(v => 1 / v);
         setText('rates_out', vals.map(v => `1/${fmt(v, 0)}`).join(' , '));
         const sumRate = rates.reduce((s, r) => s + r, 0);
-        setText('together_out', sumRate !== 0 ? `${fmt(1 / sumRate)} 日` : '―');
+        setText('together_out', sumRate !== 0 ? `${fmt(1 / sumRate)} ${unit}` : '―');
       };
       [a, b, c, d].forEach(el => el.addEventListener('input', calc));
 
-      const swa = id('sw_a_alone'), swt = id('sw_together'), swtot = id('sw_total');
       const calcSw = () => {
+        const unit = uSelect.value;
         const av = num(swa.value), tv = num(swt.value), totv = num(swtot.value);
         if (av === null || tv === null || totv === null || av === 0 || tv === 0) { setText('sw_out', '―'); return; }
         const rateB = 1 / tv - 1 / av;
-        if (rateB <= 0) { setText('sw_out', '入力条件を見直してください'); return; }
+        if (rateB <= 0) { setText('sw_out', '入力条件を見見直してください'); return; }
         const rateA = 1 / av;
         const denom = rateA - rateB;
         if (denom === 0) { setText('sw_out', '―'); return; }
-        setText('sw_out', `${fmt((1 - totv * rateB) / denom, 2)} 日`);
+        setText('sw_out', `${fmt((1 - totv * rateB) / denom, 2)} ${unit}`);
       };
       [swa, swt, swtot].forEach(el => el.addEventListener('input', calcSw));
 
-      const dt = id('dp_total'), dn = id('dp_n'), dp = id('dp_paid');
       const calcDP = () => {
         const tv = num(dt.value), nv = num(dn.value), pv = num(dp.value);
         if (tv === null || nv === null || nv === 0) { setText('dp_perpay_out', '―'); setText('dp_paidamt_out', '―'); setText('dp_remain_out', '―'); return; }
@@ -420,6 +491,9 @@ const TOOLS = [
         } else { setText('dp_paidamt_out', '―'); setText('dp_remain_out', '―'); }
       };
       [dt, dn, dp].forEach(el => el.addEventListener('input', calcDP));
+
+      // セレクトボックスの変更イベントを登録
+      uSelect.addEventListener('change', updateUnitLabels);
     }
   },
   // 7. 速度算
