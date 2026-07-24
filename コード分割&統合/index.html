@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="ja"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Unbundler &amp; Bundler - コード自動分割・統合ツール</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome / Lucide icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- JSZip for ZIP download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- CodeMirror for rich code editor -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  
+<link rel="stylesheet" href="style.css"></head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-scissors text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+            HTML Unbundler
+            <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.0 Pro</span>
+          </h1>
+          <p class="text-xs text-slate-400">HTML / CSS / JS の自動分割 &amp; 相互結合ツール (完全ローカル処理)</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
+        <button id="modeUnbundleBtn" class="px-3 py-1.5 rounded-md text-xs font-medium transition bg-indigo-600 text-white shadow" onclick="setMode('unbundle')">
+          <i class="fa-solid fa-arrows-split-up-and-left mr-1.5"></i>分割 (Unbundle)
+        </button>
+        <button id="modeBundleBtn" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition" onclick="setMode('bundle')">
+          <i class="fa-solid fa-object-group mr-1.5"></i>結合 (Bundle)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col gap-4">
+
+    <!-- Top Toolbar / Options -->
+    <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div id="unbundleOptions" class="flex flex-wrap items-center gap-4 text-xs">
+        <div class="flex items-center gap-2">
+          <label class="text-slate-400 font-medium">HTML名:</label>
+          <input type="text" id="htmlFileName" value="index.html" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-indigo-500 w-28">
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-slate-400 font-medium">CSS名:</label>
+          <input type="text" id="cssFileName" value="style.css" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-indigo-500 w-28">
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-slate-400 font-medium">JS名:</label>
+          <input type="text" id="jsFileName" value="script.js" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-indigo-500 w-28">
+        </div>
+        <div class="h-4 w-px bg-slate-700"></div>
+        <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+          <input type="checkbox" id="autoFormatCheck" checked="" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
+          コード整形 (Format)
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 ml-auto">
+        <button id="loadSampleBtn" onclick="loadSampleCode()" class="px-3 py-1.5 text-xs bg-slate-700/80 hover:bg-slate-700 text-slate-300 rounded-lg transition border border-slate-600/50">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>サンプル読み込み
+        </button>
+        <button id="clearBtn" onclick="clearAll()" class="px-3 py-1.5 text-xs bg-slate-700/80 hover:bg-slate-700 text-slate-300 rounded-lg transition border border-slate-600/50">
+          <i class="fa-solid fa-trash-can mr-1.5"></i>クリア
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Workspace (2 Column Grid) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-[550px]">
+
+      <!-- Left Box: Input Source -->
+      <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl flex flex-col overflow-hidden shadow-lg">
+        <div class="bg-slate-800/80 px-4 py-2.5 border-b border-slate-700/80 flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-code text-indigo-400"></i>
+            <span id="inputLabel">入力: 統合HTMLコード</span>
+          </span>
+          <div class="flex items-center gap-2">
+            <label class="cursor-pointer text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded border border-slate-600 transition">
+              <i class="fa-solid fa-upload mr-1"></i>ファイル読込
+              <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileUpload(event)">
+            </label>
+          </div>
+        </div>
+        <div class="flex-1 relative">
+          <textarea id="sourceInput" class="w-full h-full p-4 bg-slate-950 text-slate-200 font-mono text-xs focus:outline-none resize-none" placeholder="ここに1つにまとまったHTMLコードを貼り付けるか、ファイルをドロップしてください..."></textarea>
+        </div>
+      </div>
+
+      <!-- Right Box: Output / Split Preview -->
+      <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl flex flex-col overflow-hidden shadow-lg">
+        
+        <!-- Tab Header & Download Toolbar -->
+        <div class="bg-slate-800/80 px-3 py-2 border-b border-slate-700/80 flex flex-wrap items-center justify-between gap-2">
+          
+          <!-- Output Tabs -->
+          <div class="flex items-center gap-1 bg-slate-900/60 p-1 rounded-lg border border-slate-700/50">
+            <button id="tabHtml" onclick="switchTab('html')" class="px-3 py-1 rounded text-xs font-semibold bg-indigo-600 text-white shadow">
+              <i class="fa-brands fa-html5 text-orange-400 mr-1"></i><span id="tabHtmlName">index.html</span>
+            </button>
+            <button id="tabCss" onclick="switchTab('css')" class="px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-white">
+              <i class="fa-brands fa-css3-alt text-blue-400 mr-1"></i><span id="tabCssName">style.css</span>
+            </button>
+            <button id="tabJs" onclick="switchTab('js')" class="px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-white">
+              <i class="fa-brands fa-js text-yellow-400 mr-1"></i><span id="tabJsName">script.js</span>
+            </button>
+            <button id="tabPreview" onclick="switchTab('preview')" class="px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-white">
+              <i class="fa-solid fa-eye text-emerald-400 mr-1"></i>プレビュー
+            </button>
+          </div>
+
+          <!-- Download Action Group -->
+          <div class="flex items-center gap-2">
+            <!-- Individual File Download (Multi-file batch) -->
+            <button onclick="downloadFilesSeparately()" class="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition shadow-md flex items-center gap-1.5">
+              <i class="fa-solid fa-file-arrow-down"></i>
+              <span>別々に一括保存</span>
+            </button>
+
+            <!-- ZIP Download -->
+            <button onclick="downloadZip()" class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow-md flex items-center gap-1.5">
+              <i class="fa-solid fa-file-zipper"></i>
+              <span>ZIP保存</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Views -->
+        <div class="flex-1 relative bg-slate-950">
+          
+          <!-- Code Displays -->
+          <div id="codeViewContainer" class="absolute inset-0 flex flex-col">
+            <div class="bg-slate-900/90 px-3 py-1.5 text-[11px] text-slate-400 border-b border-slate-800 flex justify-between items-center">
+              <span id="activeFileIndicator">index.html</span>
+              <button onclick="copyCurrentTabCode()" class="hover:text-white text-slate-400 transition flex items-center gap-1">
+                <i class="fa-regular fa-copy"></i> コードをコピー
+              </button>
+            </div>
+            <div class="flex-1 relative">
+              <textarea id="outputCodeArea" readonly="" class="w-full h-full p-4 bg-slate-950 text-slate-200 font-mono text-xs focus:outline-none resize-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Iframe Preview View -->
+          <div id="iframeViewContainer" class="absolute inset-0 bg-white hidden flex-col">
+            <iframe id="previewIframe" class="w-full h-full border-none"></iframe>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Feature Highlights Banner -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+      <div class="bg-slate-800/30 border border-slate-800 rounded-xl p-3.5 flex items-start gap-3">
+        <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <i class="fa-solid fa-folder-tree text-lg"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-200">ワンクリック個別に一括保存</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">ZIP解凍なしで `index.html`, `style.css`, `script.js` を直接フォルダに一括保存します。</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/30 border border-slate-800 rounded-xl p-3.5 flex items-start gap-3">
+        <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <i class="fa-solid fa-shield-halved text-lg"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-200">セキュリティ完全重視</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">コードは外部サーバーへ送信されず、すべてお使いのブラウザ内部で安全にパース処理されます。</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/30 border border-slate-800 rounded-xl p-3.5 flex items-start gap-3">
+        <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <i class="fa-solid fa-rotate text-lg"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-200">双方向（結合・分割）対応</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">分割だけでなく、分離した複数のコードを1つのHTMLファイルに逆コンパイル結合も可能です。</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs opacity-0 transition-opacity duration-300 pointer-events-none z-50 border border-indigo-400/30">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg">通知メッセージ</span>
+  </div>
+
+  <!-- JavaScript Logic -->
+  
+
+<script src="script.js"></script></body></html>
