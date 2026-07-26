@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idea Cards — アイデア帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F1E4;
+  --paper-deep:#EFE6D2;
+  --line:#DED2B7;
+  --ink:#2B2A28;
+  --ink-soft:#7A7264;
+  --stamp:#B23A26;
+  --stamp-dark:#8C2C1C;
+  --sage:#5E7A5B;
+  --sage-soft:#DDE7D3;
+  --card-yellow:#FBE4B8;
+  --card-mint:#D8E8D2;
+  --card-lav:#E6DCF0;
+  --card-rose:#F4D6D2;
+  --card-sky:#D6E3EE;
+  --card-plain:#FFFDF7;
+  --shadow: 2px 3px 0 rgba(43,42,40,0.10), 0 8px 20px rgba(43,42,40,0.08);
+  --radius: 3px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 1px 1px, rgba(43,42,40,0.045) 1px, transparent 0) 0 0/22px 22px,
+    var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+::selection{ background: var(--card-yellow); }
+
+/* ---------- Header ---------- */
+header{
+  padding:28px 32px 18px;
+  border-bottom:2px solid var(--line);
+  background:linear-gradient(var(--paper), var(--paper-deep));
+  position:sticky; top:0; z-index:30;
+}
+.header-row{
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  max-width:1200px; margin:0 auto;
+}
+.brand{ display:flex; align-items:center; gap:14px; }
+.stamp-logo{
+  font-family:'Special Elite', monospace;
+  font-size:26px; letter-spacing:1px;
+  color:var(--stamp);
+  border:3px solid var(--stamp);
+  border-radius:6px;
+  padding:6px 12px;
+  transform:rotate(-3deg);
+  background:rgba(178,58,38,0.05);
+  white-space:nowrap;
+}
+.tagline{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+.brand-text h1{ margin:0; font-size:0; } /* visually hidden, stamp is the title */
+
+.toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.search-box{
+  display:flex; align-items:center; gap:6px;
+  background:var(--card-plain); border:1.5px solid var(--line); border-radius:20px;
+  padding:8px 14px; min-width:220px;
+}
+.search-box input{
+  border:none; outline:none; background:transparent; font-family:'Inter'; font-size:14px; width:100%; color:var(--ink);
+}
+select{
+  font-family:'Inter'; font-size:13px; padding:8px 10px; border-radius:20px;
+  border:1.5px solid var(--line); background:var(--card-plain); color:var(--ink); cursor:pointer;
+}
+button{ font-family:'Inter'; cursor:pointer; }
+.btn-primary{
+  background:var(--stamp); color:#fff; border:none; border-radius:20px;
+  padding:9px 18px; font-size:14px; font-weight:600; box-shadow:2px 2px 0 var(--stamp-dark);
+  transition:transform .12s ease;
+}
+.btn-primary:hover{ transform:translateY(-1px); }
+.btn-primary:active{ transform:translateY(1px); box-shadow:1px 1px 0 var(--stamp-dark); }
+.icon-btn{
+  background:var(--card-plain); border:1.5px solid var(--line); border-radius:50%;
+  width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:16px;
+  color:var(--ink-soft);
+}
+.icon-btn:hover{ border-color:var(--stamp); color:var(--stamp); }
+
+.filter-row{
+  max-width:1200px; margin:14px auto 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+}
+.tag-chip{
+  font-size:12px; padding:5px 12px; border-radius:14px; border:1.5px solid var(--sage);
+  color:var(--sage); background:var(--sage-soft); cursor:pointer; user-select:none;
+}
+.tag-chip.active{ background:var(--sage); color:#fff; }
+.view-toggle{
+  margin-left:auto; font-size:13px; color:var(--ink-soft); display:flex; gap:14px; align-items:center;
+}
+.view-toggle label{ cursor:pointer; display:flex; align-items:center; gap:5px; }
+
+/* ---------- Board ---------- */
+main{ max-width:1200px; margin:0 auto; padding:26px 32px 80px; }
+.board{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:20px;
+}
+.empty-state{
+  text-align:center; padding:80px 20px; color:var(--ink-soft);
+}
+.empty-state .stamp-logo{ display:inline-block; margin-bottom:16px; opacity:.6; }
+
+.card{
+  position:relative;
+  background:var(--card-plain);
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:16px 16px 14px;
+  cursor:grab;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.card:hover{ transform:translateY(-3px) rotate(0deg) !important; box-shadow:3px 5px 0 rgba(43,42,40,0.12), 0 12px 24px rgba(43,42,40,0.12); }
+.card.dragging{ opacity:0.4; }
+.card::before{
+  content:""; position:absolute; top:8px; left:14px; width:8px; height:8px; border-radius:50%;
+  background:var(--paper); box-shadow:inset 0 1px 2px rgba(0,0,0,0.25);
+}
+.card-title{
+  font-family:'Special Elite', monospace; font-size:16px; margin:6px 0 6px; padding-left:2px;
+  line-height:1.4; word-break:break-word;
+}
+.card-desc{
+  font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 0 10px;
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
+  line-clamp:4; white-space:pre-wrap;
+}
+.card-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.card-tags span{
+  font-size:10.5px; padding:2px 8px; border-radius:10px; background:var(--sage-soft); color:var(--sage);
+}
+.card-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.card-date{ font-size:10.5px; color:var(--ink-soft); opacity:.75; }
+.card-actions{ display:flex; gap:4px; opacity:0; transition:opacity .15s ease; }
+.card:hover .card-actions{ opacity:1; }
+.card-actions button{
+  background:none; border:none; font-size:14px; color:var(--ink-soft); padding:3px 5px; border-radius:4px;
+}
+.card-actions button:hover{ background:rgba(43,42,40,0.08); color:var(--ink); }
+.fav-stamp{
+  position:absolute; top:-10px; right:-8px; width:42px; height:42px; border-radius:50%;
+  border:2.5px solid var(--stamp); color:var(--stamp); display:flex; align-items:center; justify-content:center;
+  font-size:17px; transform:rotate(12deg); background:rgba(255,253,247,0.9);
+  font-family:'Special Elite', monospace;
+}
+.card.archived{ opacity:0.55; }
+.card.archived .card-title{ text-decoration:line-through; }
+
+/* card color variants (left accent bar) */
+.card[data-color="yellow"]{ border-top:5px solid var(--card-yellow); }
+.card[data-color="mint"]{ border-top:5px solid var(--card-mint); }
+.card[data-color="lavender"]{ border-top:5px solid var(--card-lav); }
+.card[data-color="rose"]{ border-top:5px solid var(--card-rose); }
+.card[data-color="sky"]{ border-top:5px solid var(--card-sky); }
+.card[data-color="plain"]{ border-top:5px solid var(--line); }
+
+/* ---------- Modal ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(43,42,40,0.45); display:none; align-items:center; justify-content:center;
+  z-index:100; padding:20px;
+}
+.overlay.open{ display:flex; }
+.modal{
+  background:var(--paper); border-radius:6px; padding:28px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 50px rgba(0,0,0,0.25); border:1px solid var(--line);
+}
+.modal h2{
+  font-family:'Special Elite', monospace; font-size:20px; margin:0 0 18px; color:var(--stamp);
+}
+.field{ margin-bottom:16px; }
+.field label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+.field input[type="text"], .field textarea{
+  width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; font-family:'Inter';
+  font-size:14px; background:var(--card-plain); color:var(--ink); resize:vertical;
+}
+.field textarea{ min-height:90px; line-height:1.5; }
+.color-swatches{ display:flex; gap:8px; }
+.swatch{
+  width:30px; height:30px; border-radius:50%; border:2px solid transparent; cursor:pointer;
+}
+.swatch.selected{ border-color:var(--ink); }
+.swatch[data-c="yellow"]{ background:var(--card-yellow); }
+.swatch[data-c="mint"]{ background:var(--card-mint); }
+.swatch[data-c="lavender"]{ background:var(--card-lav); }
+.swatch[data-c="rose"]{ background:var(--card-rose); }
+.swatch[data-c="sky"]{ background:var(--card-sky); }
+.swatch[data-c="plain"]{ background:var(--card-plain); border-color:var(--line); }
+.fav-toggle{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); cursor:pointer; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+.btn-ghost{
+  background:none; border:1.5px solid var(--line); border-radius:20px; padding:9px 16px; font-size:14px; color:var(--ink-soft);
+}
+.btn-danger{ color:var(--stamp); border-color:var(--stamp); background:none; border-radius:20px; padding:9px 16px; font-size:13px; }
+
+/* settings modal */
+.status-line{ font-size:12px; color:var(--ink-soft); margin-top:8px; display:flex; align-items:center; gap:6px; }
+.dot{ width:8px; height:8px; border-radius:50%; background:#c9c2af; }
+.dot.ok{ background:var(--sage); }
+.dot.err{ background:var(--stamp); }
+
+@media (max-width:640px){
+  header{ padding:18px 16px; }
+  main{ padding:18px 16px 60px; }
+  .board{ grid-template-columns:1fr 1fr; gap:14px; }
+  .view-toggle{ margin-left:0; width:100%; justify-content:space-between; }
+}
+@media (max-width:420px){
+  .board{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="brand">
+      <div class="stamp-logo">IDEA CARDS</div>
+      <div><div class="tagline">思いついたら、すぐカードに。</div></div>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="searchInput" type="text" placeholder="キーワードで検索…">
+      </div>
+      <select id="sortSelect">
+        <option value="order">並び順</option>
+        <option value="updated">更新順</option>
+        <option value="created">作成順</option>
+        <option value="favorite">お気に入り順</option>
+      </select>
+      <button class="btn-primary" id="newCardBtn">＋ 新規カード</button>
+      <button class="icon-btn" id="settingsBtn" title="設定（スプレッドシート連携）">⚙</button>
+    </div>
+  </div>
+  <div class="filter-row" id="tagFilterRow">
+    <!-- tag chips injected here -->
+    <div class="view-toggle">
+      <label><input type="checkbox" id="showArchivedToggle"> アーカイブも表示</label>
+      <span id="syncStatus" style="display:flex;align-items:center;gap:6px;">
+        <span class="dot" id="statusDot"></span><span id="statusText">未接続</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="board" id="board"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="stamp-logo">EMPTY</div>
+    <p>まだアイデアがありません。「＋ 新規カード」から最初の1枚を作りましょう。</p>
+  </div>
+</main>
+
+<!-- Card Edit Modal -->
+<div class="overlay" id="cardOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">新しいアイデア</h2>
+    <div class="field">
+      <label>タイトル</label>
+      <input type="text" id="cardTitleInput" placeholder="例）朝ごはんの写真だけを集めるSNS">
+    </div>
+    <div class="field">
+      <label>説明（任意）</label>
+      <textarea id="cardDescInput" placeholder="思いついた背景、メモ、次のアクションなど…"></textarea>
+    </div>
+    <div class="field">
+      <label>タグ（カンマ区切り）</label>
+      <input type="text" id="cardTagsInput" placeholder="例）アプリ, 副業, いつか試す">
+    </div>
+    <div class="field">
+      <label>カードの色</label>
+      <div class="color-swatches">
+        <div class="swatch" data-c="plain"></div>
+        <div class="swatch" data-c="yellow"></div>
+        <div class="swatch" data-c="mint"></div>
+        <div class="swatch" data-c="lavender"></div>
+        <div class="swatch" data-c="rose"></div>
+        <div class="swatch" data-c="sky"></div>
+      </div>
+    </div>
+    <label class="fav-toggle">
+      <input type="checkbox" id="cardFavInput"> ⭐ お気に入りに登録する
+    </label>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelBtn">キャンセル</button>
+      <button class="btn-primary" id="saveCardBtn">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h2>設定</h2>
+    <div class="field">
+      <label>Google Apps Script ウェブアプリ URL</label>
+      <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/xxxx/exec">
+      <div class="status-line">スプレッドシートをデータベースとして使うためのAPI URLです。詳細は「セットアップ手順.md」を参照してください。</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="settingsCancelBtn">閉じる</button>
+      <button class="btn-primary" id="settingsSaveBtn">保存して同期</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_KEY = "ideacards_local_v1";
+const LS_API = "ideacards_api_url";
+let cards = [];
+let apiUrl = localStorage.getItem(LS_API) || "";
+let editingId = null;
+let selectedColor = "plain";
+let activeTagFilter = null;
+let dragSrcId = null;
+
+const $ = (sel) => document.querySelector(sel);
+const board = $("#board");
+const emptyState = $("#emptyState");
+
+// ---------- Local storage fallback (offline-first cache) ----------
+function loadLocal(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)) || []; }catch(e){ return []; }
+}
+function saveLocal(){
+  localStorage.setItem(LS_KEY, JSON.stringify(cards));
+}
+
+// ---------- API layer ----------
+async function apiList(){
+  if(!apiUrl) return loadLocal();
+  try{
+    const res = await fetch(apiUrl + "?action=list");
+    const json = await res.json();
+    if(json.ok){ setStatus(true); return json.data; }
+    setStatus(false); return loadLocal();
+  }catch(e){ setStatus(false); return loadLocal(); }
+}
+async function apiPost(payload){
+  if(!apiUrl) return null;
+  try{
+    const res = await fetch(apiUrl, {
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" }, // avoid CORS preflight
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    setStatus(json.ok);
+    return json;
+  }catch(e){ setStatus(false); return null; }
+}
+function setStatus(ok){
+  const dot = $("#statusDot"), text = $("#statusText");
+  if(!apiUrl){ dot.className="dot"; text.textContent="ローカル保存のみ（未接続）"; return; }
+  dot.className = "dot " + (ok ? "ok":"err");
+  text.textContent = ok ? "スプレッドシートと同期済み" : "同期エラー（ローカルに保存中）";
+}
+
+// ---------- Rendering ----------
+function uniqueTags(){
+  const set = new Set();
+  cards.forEach(c => (c.tags||[]).forEach(t => set.add(t)));
+  return [...set];
+}
+function renderTagFilters(){
+  const row = $("#tagFilterRow");
+  const existing = row.querySelectorAll(".tag-chip");
+  existing.forEach(e=>e.remove());
+  const tags = uniqueTags();
+  const viewToggle = row.querySelector(".view-toggle");
+  tags.forEach(tag => {
+    const chip = document.createElement("div");
+    chip.className = "tag-chip" + (activeTagFilter===tag ? " active":"");
+    chip.textContent = tag;
+    chip.onclick = () => { activeTagFilter = (activeTagFilter===tag)? null : tag; renderAll(); };
+    row.insertBefore(chip, viewToggle);
+  });
+}
+function getFiltered(){
+  const q = $("#searchInput").value.trim().toLowerCase();
+  const showArchived = $("#showArchivedToggle").checked;
+  let list = cards.filter(c => showArchived ? true : !c.archived);
+  if(activeTagFilter) list = list.filter(c => (c.tags||[]).includes(activeTagFilter));
+  if(q) list = list.filter(c =>
+    (c.title||"").toLowerCase().includes(q) ||
+    (c.description||"").toLowerCase().includes(q) ||
+    (c.tags||[]).some(t=>t.toLowerCase().includes(q))
+  );
+  const sortBy = $("#sortSelect").value;
+  list.sort((a,b) => {
+    if(sortBy==="updated") return new Date(b.updatedAt)-new Date(a.updatedAt);
+    if(sortBy==="created") return new Date(b.createdAt)-new Date(a.createdAt);
+    if(sortBy==="favorite") return (b.favorite?1:0)-(a.favorite?1:0) || (a.order-b.order);
+    return (a.order||0)-(b.order||0);
+  });
+  return list;
+}
+function fmtDate(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function renderAll(){
+  renderTagFilters();
+  const list = getFiltered();
+  board.innerHTML = "";
+  emptyState.style.display = list.length ? "none":"block";
+  list.forEach((c, i) => {
+    const el = document.createElement("div");
+    el.className = "card" + (c.archived ? " archived":"");
+    el.dataset.color = c.color || "plain";
+    el.dataset.id = c.id;
+    el.draggable = true;
+    el.style.transform = `rotate(${(i % 5 - 2) * 0.6}deg)`;
+    el.innerHTML = `
+      ${c.favorite ? `<div class="fav-stamp">★</div>` : ""}
+      <div class="card-title">${escapeHtml(c.title || "(無題)")}</div>
+      ${c.description ? `<div class="card-desc">${escapeHtml(c.description)}</div>` : ""}
+      ${(c.tags&&c.tags.length) ? `<div class="card-tags">${c.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      <div class="card-footer">
+        <span class="card-date">${fmtDate(c.updatedAt||c.createdAt)}</span>
+        <div class="card-actions">
+          <button data-act="edit" title="編集">✎</button>
+          <button data-act="archive" title="${c.archived?'復元':'アーカイブ'}">${c.archived?'⤴':'⤓'}</button>
+          <button data-act="delete" title="削除">✕</button>
+        </div>
+      </div>
+    `;
+    el.addEventListener("dragstart", e => { dragSrcId = c.id; el.classList.add("dragging"); });
+    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    el.addEventListener("dragover", e => e.preventDefault());
+    el.addEventListener("drop", e => {
+      e.preventDefault();
+      if(dragSrcId && dragSrcId !== c.id) reorderCards(dragSrcId, c.id);
+    });
+    el.querySelector('[data-act="edit"]').onclick = (e)=>{ e.stopPropagation(); openEditModal(c.id); };
+    el.querySelector('[data-act="archive"]').onclick = (e)=>{ e.stopPropagation(); toggleArchive(c.id); };
+    el.querySelector('[data-act="delete"]').onclick = (e)=>{ e.stopPropagation(); deleteCard(c.id); };
+    board.appendChild(el);
+  });
+}
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+// ---------- CRUD ----------
+async function loadCards(){
+  cards = await apiList();
+  saveLocal();
+  renderAll();
+}
+function openNewModal(){
+  editingId = null; selectedColor = "plain";
+  $("#modalTitle").textContent = "新しいアイデア";
+  $("#cardTitleInput").value = ""; $("#cardDescInput").value = ""; $("#cardTagsInput").value = "";
+  $("#cardFavInput").checked = false;
+  updateSwatchUI();
+  $("#cardOverlay").classList.add("open");
+  $("#cardTitleInput").focus();
+}
+function openEditModal(id){
+  const c = cards.find(x=>x.id===id); if(!c) return;
+  editingId = id; selectedColor = c.color || "plain";
+  $("#modalTitle").textContent = "アイデアを編集";
+  $("#cardTitleInput").value = c.title || "";
+  $("#cardDescInput").value = c.description || "";
+  $("#cardTagsInput").value = (c.tags||[]).join(", ");
+  $("#cardFavInput").checked = !!c.favorite;
+  updateSwatchUI();
+  $("#cardOverlay").classList.add("open");
+}
+function updateSwatchUI(){
+  document.querySelectorAll(".swatch").forEach(s=>{
+    s.classList.toggle("selected", s.dataset.c === selectedColor);
+  });
+}
+async function saveCard(){
+  const title = $("#cardTitleInput").value.trim();
+  if(!title){ $("#cardTitleInput").focus(); return; }
+  const tags = $("#cardTagsInput").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const payload = {
+    title,
+    description: $("#cardDescInput").value.trim(),
+    tags, color: selectedColor,
+    favorite: $("#cardFavInput").checked
+  };
+  if(editingId){
+    payload.id = editingId;
+    const res = await apiPost({action:"update", card:payload});
+    const idx = cards.findIndex(c=>c.id===editingId);
+    if(idx>-1) cards[idx] = Object.assign({}, cards[idx], payload, {updatedAt:new Date().toISOString()});
+    if(res && res.data) cards[idx] = res.data;
+  } else {
+    const localId = "local-"+Date.now();
+    const nowIso = new Date().toISOString();
+    const maxOrder = cards.length ? Math.max(...cards.map(c=>c.order||0)) : 0;
+    const newCard = Object.assign({id:localId, createdAt:nowIso, updatedAt:nowIso, archived:false, order:maxOrder+1}, payload);
+    cards.push(newCard);
+    const res = await apiPost({action:"create", card:payload});
+    if(res && res.data){
+      const idx = cards.findIndex(c=>c.id===localId);
+      if(idx>-1) cards[idx] = res.data;
+    }
+  }
+  saveLocal(); renderAll();
+  $("#cardOverlay").classList.remove("open");
+}
+async function toggleArchive(id){
+  const c = cards.find(x=>x.id===id); if(!c) return;
+  c.archived = !c.archived; c.updatedAt = new Date().toISOString();
+  saveLocal(); renderAll();
+  await apiPost({action:"update", card:{id, archived:c.archived}});
+}
+async function deleteCard(id){
+  if(!confirm("このカードを削除しますか？元に戻せません。")) return;
+  cards = cards.filter(c=>c.id!==id);
+  saveLocal(); renderAll();
+  await apiPost({action:"delete", id});
+}
+async function reorderCards(srcId, targetId){
+  const srcIdx = cards.findIndex(c=>c.id===srcId);
+  const tgtIdx = cards.findIndex(c=>c.id===targetId);
+  if(srcIdx===-1||tgtIdx===-1) return;
+  const [moved] = cards.splice(srcIdx,1);
+  cards.splice(tgtIdx,0,moved);
+  cards.forEach((c,i)=>{ c.order = i+1; });
+  saveLocal(); renderAll();
+  await apiPost({action:"reorder", orders: cards.map(c=>({id:c.id, order:c.order}))});
+}
+
+// ---------- Events ----------
+$("#newCardBtn").onclick = openNewModal;
+$("#cancelBtn").onclick = () => $("#cardOverlay").classList.remove("open");
+$("#saveCardBtn").onclick = saveCard;
+document.querySelectorAll(".swatch").forEach(s=>{
+  s.onclick = () => { selectedColor = s.dataset.c; updateSwatchUI(); };
+});
+$("#searchInput").oninput = renderAll;
+$("#sortSelect").onchange = renderAll;
+$("#showArchivedToggle").onchange = renderAll;
+$("#settingsBtn").onclick = () => { $("#apiUrlInput").value = apiUrl; $("#settingsOverlay").classList.add("open"); };
+$("#settingsCancelBtn").onclick = () => $("#settingsOverlay").classList.remove("open");
+$("#settingsSaveBtn").onclick = async () => {
+  apiUrl = $("#apiUrlInput").value.trim();
+  localStorage.setItem(LS_API, apiUrl);
+  $("#settingsOverlay").classList.remove("open");
+  await loadCards();
+};
+document.querySelectorAll(".overlay").forEach(o=>{
+  o.addEventListener("click", e => { if(e.target === o) o.classList.remove("open"); });
+});
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape") document.querySelectorAll(".overlay.open").forEach(o=>o.classList.remove("open"));
+});
+
+// ---------- Init ----------
+loadCards();
+if(!apiUrl){ setStatus(false); }
+</script>
+</body>
+</html>
