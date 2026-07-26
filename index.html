@@ -17,6 +17,14 @@
       --muted: #6b6b80;
       --card-bg: #13131c;
       --glow: rgba(124, 109, 250, 0.15);
+
+      --cat-dev:#00e5ff;
+      --cat-edu:#ff7a3d;
+      --cat-research:#9b5cff;
+      --cat-career:#ff2e88;
+      --cat-minecraft:#39ff9c;
+      --cat-game:#ffe14d;
+      --cat-none:#6b6b80;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -126,6 +134,24 @@
     .btn:hover { opacity: 0.85; }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.small { padding: 0.4rem 0.8rem; font-size: 0.72rem; }
+    .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn.ghost:hover { border-color: var(--accent); opacity: 1; color: var(--accent); }
+
+    .meta-source {
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .meta-source .src-badge {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.15rem 0.6rem;
+      color: var(--accent);
+    }
 
     /* Status bar */
     .status-bar {
@@ -174,6 +200,79 @@
       margin: 0 auto;
       padding: 2rem;
     }
+
+    /* ===== filter bar (NEW) ===== */
+    .filter-panel {
+      display: none;
+      flex-direction: column;
+      gap: 0.9rem;
+      margin-bottom: 1.8rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .filter-panel.show { display: flex; }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .filter-row .filter-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      width: 78px;
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      outline: none;
+      flex: 1 1 220px;
+      min-width: 160px;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    .cat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      border-radius: 20px;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cat-chip .sw { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .cat-chip:hover { color: var(--text); border-color: var(--muted); }
+    .cat-chip.active { color: #0a0a0f; border-color: transparent; }
+
+    .tag-chip {
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      border-radius: 20px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tag-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tag-chip:hover { color: var(--text); }
 
     /* Loading */
     #loading {
@@ -226,19 +325,7 @@
       transform: translateY(24px);
       animation: fadeUp 0.5s ease forwards;
       transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-    }
-    .card-icon.has-image {
-      padding: 0;
-      overflow: hidden;
-    }
-    .card-icon-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
+      position: relative;
     }
 
     .card:hover {
@@ -249,6 +336,14 @@
 
     @keyframes fadeUp {
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-link-area {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      text-decoration: none;
+      color: inherit;
     }
 
     .card-header {
@@ -303,6 +398,34 @@
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      margin-bottom: 0.8rem;
+    }
+
+    /* category badge + tags on card */
+    .card-genre {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.66rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      margin-bottom: 0.6rem;
+      border: 1px solid currentColor;
+    }
+    .card-genre .sw { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .card-tags span {
+      font-size: 0.66rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
     }
 
     .card-footer {
@@ -313,6 +436,7 @@
       justify-content: space-between;
       font-size: 0.72rem;
       color: var(--muted);
+      gap: 0.6rem;
     }
 
     .card-link {
@@ -337,15 +461,59 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 60%;
+      max-width: 55%;
     }
+
+    .edit-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* inline edit panel */
+    .edit-panel {
+      display: none;
+      padding: 1rem 1.5rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: rgba(124,109,250,0.04);
+      gap: 0.6rem;
+      flex-direction: column;
+    }
+    .edit-panel.open { display: flex; }
+    .edit-panel label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .edit-panel select, .edit-panel input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 6px;
+      outline: none;
+      width: 100%;
+    }
+    .edit-panel select:focus, .edit-panel input:focus { border-color: var(--accent); }
+    .edit-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
 
     /* Stats row */
     .stats-row {
       display: flex;
       align-items: center;
       gap: 1.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.2rem;
       flex-wrap: wrap;
     }
 
@@ -416,13 +584,51 @@
         <span class="stat-num" id="statFolders">0</span>
         <span class="stat-label">FOLDERS SCANNED</span>
       </div>
+      <div class="stat">
+        <span class="stat-num" id="statShown">0</span>
+        <span class="stat-label">SHOWN (FILTERED)</span>
+      </div>
     </div>
+
+    <!-- ===== filter panel (NEW) ===== -->
+    <div class="filter-panel" id="filterPanel">
+      <div class="filter-row">
+        <span class="filter-label">SEARCH</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="タイトル・説明・タグで検索...">
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">GENRE</span>
+        <div id="catChips" style="display:flex;gap:0.5rem;flex-wrap:wrap;"></div>
+      </div>
+      <div class="filter-row" id="tagRow" style="display:none;">
+        <span class="filter-label">TAGS</span>
+        <div id="tagChips" style="display:flex;gap:0.5rem;flex-wrap:wrap;"></div>
+      </div>
+      <div class="filter-row" style="justify-content:space-between;">
+        <span class="meta-source" id="metaSource"></span>
+        <button class="btn small ghost" onclick="exportMeta()">📥 portal-meta.json を書き出す</button>
+      </div>
+    </div>
+
     <div id="grid"></div>
   </div>
 </main>
 
 <script>
-// カード用アイコン（ランダム選択・icon.png が無い場合のフォールバック用）
+  // ==================== ジャンル定義（拡張しやすいよう配列で管理） ====================
+  const CATEGORIES = [
+    { id: 'all',       label: 'ALL',              color: 'var(--text)' },
+    { id: 'dev',       label: '開発・データ処理',   color: 'var(--cat-dev)' },
+    { id: 'edu',       label: '探究・教育',         color: 'var(--cat-edu)' },
+    { id: 'research',  label: '研究・学術',         color: 'var(--cat-research)' },
+    { id: 'career',    label: '就活・ビジネス',     color: 'var(--cat-career)' },
+    { id: 'minecraft', label: 'マインクラフト',     color: 'var(--cat-minecraft)' },
+    { id: 'game',      label: 'ゲーム・エンタメ',   color: 'var(--cat-game)' },
+    { id: 'none',      label: '未分類',            color: 'var(--cat-none)' },
+  ];
+  const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+  // カード用アイコン（ランダム選択）
   const icons = ['◈','◉','◎','⬡','⬢','◆','▣','⊞','⊟','⬟'];
   const colors = [
     ['#7c6dfa','#fa6d8d'],
@@ -432,33 +638,114 @@
     ['#b06dfa','#6dfae8'],
   ];
 
+  let currentOwner = '', currentRepo = '';
+  let allSites = [];               // スキャン結果（生データ）
+  let filterState = { cat: 'all', search: '', tags: new Set() };
+  let remoteMeta = {};             // リポジトリ内 portal-meta.json の内容（正規化前）
+  let hasRemoteMeta = false;
+
+  // ==================== メタデータ（ジャンル・タグ）永続化 ====================
+  // 優先順位: localStorage（このブラウザでの下書き編集）> リポジトリの portal-meta.json > 未分類
+  function metaKey() { return `portal-meta:${currentOwner}/${currentRepo}`; }
+
+  function loadLocalOverrides() {
+    try {
+      return JSON.parse(localStorage.getItem(metaKey()) || '{}');
+    } catch { return {}; }
+  }
+
+  function saveLocalOverrides(meta) {
+    localStorage.setItem(metaKey(), JSON.stringify(meta));
+  }
+
+  // remoteMeta と localStorage の下書きをマージした「実効メタデータ」を返す
+  function loadMeta() {
+    const local = loadLocalOverrides();
+    const merged = {};
+    for (const path in remoteMeta) {
+      const r = remoteMeta[path] || {};
+      merged[path] = { cat: r.category || r.cat || 'none', tags: r.tags || [] };
+    }
+    for (const path in local) {
+      merged[path] = local[path];
+    }
+    return merged;
+  }
+
+  function setSiteMeta(path, cat, tags) {
+    const local = loadLocalOverrides();
+    local[path] = { cat, tags };
+    saveLocalOverrides(local);
+  }
+
+  // リポジトリ直下の portal-meta.json を取得
+  async function loadRemoteMeta(owner, repo) {
+    remoteMeta = {};
+    hasRemoteMeta = false;
+    try {
+      const text = await fetchFile(owner, repo, 'portal-meta.json');
+      if (text) {
+        remoteMeta = JSON.parse(text);
+        hasRemoteMeta = true;
+      }
+    } catch (e) {
+      console.warn('portal-meta.json の読み込みに失敗、または存在しません', e);
+    }
+  }
+
+  // 現在の実効メタデータ（未編集分含む）を portal-meta.json 形式で書き出し
+  function exportMeta() {
+    const meta = loadMeta();
+    const out = {};
+    // スキャンされたサイトのみ、かつ未分類(none)でタグなしのものは書き出し対象から除外しない（明示的に残す）
+    allSites.forEach(site => {
+      const m = meta[site.path] || { cat: 'none', tags: [] };
+      out[site.path] = { category: m.cat, tags: m.tags || [] };
+    });
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'portal-meta.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function renderMetaSourceBadge() {
+    const el = document.getElementById('metaSource');
+    if (!el) return;
+    if (hasRemoteMeta) {
+      el.innerHTML = `<span class="src-badge">portal-meta.json 読込済み</span>このブラウザでの変更は下書きとして保存され、書き出すと反映されます`;
+    } else {
+      el.innerHTML = `<span class="src-badge">portal-meta.json 未検出</span>すべて未分類から開始します。編集後「書き出す」でJSONを作成できます`;
+    }
+  }
+
   // README.md からメインの紹介文を抽出
   function extractDescription(md) {
     if (!md) return '説明文が見つかりませんでした。';
 
-    // コードブロック除去
     md = md.replace(/```[\s\S]*?```/g, '');
-    // HTMLタグ除去
     md = md.replace(/<[^>]+>/g, '');
-    // バッジ行除去
     md = md.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, '');
     md = md.replace(/!\[.*?\]\(.*?\)/g, '');
 
     const lines = md.split('\n').map(l => l.trim()).filter(Boolean);
 
-    // 最初の見出しをスキップして本文テキストを探す
     let desc = '';
     let foundHeading = false;
 
     for (const line of lines) {
       if (/^#{1,3}\s/.test(line)) {
-        if (foundHeading && desc) break; // 次の見出しで終了
+        if (foundHeading && desc) break;
         foundHeading = true;
         continue;
       }
-      if (/^[-*|>]/.test(line)) continue;  // リスト・引用・テーブルスキップ
-      if (/^\[.*\]:/.test(line)) continue;  // リンク定義スキップ
-      if (line.length < 15) continue;       // 短すぎる行スキップ
+      if (/^[-*|>]/.test(line)) continue;
+      if (/^\[.*\]:/.test(line)) continue;
+      if (line.length < 15) continue;
 
       desc += (desc ? ' ' : '') + line.replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1').replace(/`([^`]+)`/g, '$1');
       if (desc.length > 300) break;
@@ -467,23 +754,17 @@
     return desc || '（README.md に説明文がありません）';
   }
 
-  // GitHub API でディレクトリ内容を取得
   async function fetchContents(owner, repo, path = '') {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const res = await fetch(url, {
-      headers: { 'Accept': 'application/vnd.github.v3+json' }
-    });
+    const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
     if (!res.ok) throw new Error(`GitHub API エラー: ${res.status} ${res.statusText}`);
     return res.json();
   }
 
-  // ファイル内容を取得（base64デコード）
   async function fetchFile(owner, repo, path) {
     try {
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const res = await fetch(url, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' }
-      });
+      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
       if (!res.ok) return null;
       const data = await res.json();
       if (data.content) {
@@ -508,35 +789,35 @@
     const parts = input.split('/').filter(Boolean);
     if (parts.length < 2) { alert('owner/repo の形式で入力してください'); return; }
 
-    const owner = parts[0];
-    const repo = parts[1];
+    currentOwner = parts[0];
+    currentRepo = parts[1];
 
-    // UI リセット
     document.getElementById('empty').style.display = 'none';
     document.getElementById('error').style.display = 'none';
     document.getElementById('results').style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
     document.getElementById('statusBar').style.display = 'flex';
-    document.getElementById('repoName').textContent = `${owner}/${repo}`;
+    document.getElementById('repoName').textContent = `${currentOwner}/${currentRepo}`;
     document.getElementById('loadBtn').disabled = true;
     document.getElementById('grid').innerHTML = '';
+    document.getElementById('filterPanel').classList.remove('show');
     scannedFolders = 0;
+    filterState = { cat: 'all', search: '', tags: new Set() };
+    allSites = [];
 
     try {
-      setStatus('ルートディレクトリをスキャン中...');
-      const rootContents = await fetchContents(owner, repo);
+      setStatus('portal-meta.json を確認中...');
+      await loadRemoteMeta(currentOwner, currentRepo);
 
-      // トップレベルのフォルダを取得
+      setStatus('ルートディレクトリをスキャン中...');
+      const rootContents = await fetchContents(currentOwner, currentRepo);
+
       const dirs = rootContents.filter(item => item.type === 'dir' && !item.name.startsWith('.'));
 
       setStatus(`${dirs.length} フォルダを検出。index.html を探しています...`);
 
-      const sites = [];
-      const baseUrl = `https://${owner}.github.io/${repo}`;
-      // GitHub Pages URL or raw GitHub URL
-      const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/HEAD`;
+      const baseUrl = `https://${currentOwner}.github.io/${currentRepo}`;
 
-      // 並列処理（max 5並列）
       const CONCURRENT = 5;
       for (let i = 0; i < dirs.length; i += CONCURRENT) {
         const batch = dirs.slice(i, i + CONCURRENT);
@@ -545,18 +826,17 @@
           setStatus(`スキャン中: ${dir.name} (${scannedFolders}/${dirs.length})`);
 
           try {
-            const contents = await fetchContents(owner, repo, dir.name);
+            const contents = await fetchContents(currentOwner, currentRepo, dir.name);
             const fileNames = contents.map(f => f.name.toLowerCase());
 
             const hasIndex = fileNames.includes('index.html');
             const hasReadme = fileNames.includes('readme.md');
-            const hasIcon = fileNames.includes('icon.png');
 
-            if (!hasIndex) return null; // index.html がなければスキップ
+            if (!hasIndex) return null;
 
             let desc = '';
             if (hasReadme) {
-              const mdContent = await fetchFile(owner, repo, `${dir.name}/README.md`);
+              const mdContent = await fetchFile(currentOwner, currentRepo, `${dir.name}/README.md`);
               desc = extractDescription(mdContent);
             }
 
@@ -565,27 +845,28 @@
               desc: desc || '（README.md がありません）',
               path: dir.path,
               indexUrl: `${baseUrl}/${dir.name}/`,
-              rawIndexUrl: `https://github.com/${owner}/${repo}/blob/main/${dir.name}/index.html`,
-              iconUrl: hasIcon ? `${rawBase}/${dir.name}/icon.png` : null,
             };
           } catch { return null; }
         }));
 
-        results.filter(Boolean).forEach(site => sites.push(site));
-        // 見つかったカードをリアルタイム表示
-        renderCards(sites, dirs.length);
+        results.filter(Boolean).forEach(site => allSites.push(site));
+        document.getElementById('statFolders').textContent = dirs.length;
+        renderFilterPanel();
+        applyFilterAndRender();
       }
 
-      document.getElementById('statCount').textContent = sites.length;
       document.getElementById('statFolders').textContent = dirs.length;
       document.getElementById('loading').style.display = 'none';
       document.getElementById('results').style.display = 'block';
 
-      if (sites.length === 0) {
+      if (allSites.length === 0) {
         setStatus('index.html を含むフォルダが見つかりませんでした');
       } else {
-        setStatus(`${sites.length} サイトを検出しました ✓`);
+        setStatus(`${allSites.length} サイトを検出しました ✓ — カードの ✎ からジャンル/タグを設定できます`);
+        document.getElementById('filterPanel').classList.add('show');
       }
+      renderFilterPanel();
+      applyFilterAndRender();
 
     } catch (err) {
       document.getElementById('loading').style.display = 'none';
@@ -598,62 +879,177 @@
     }
   }
 
-  function renderCards(sites, totalDirs) {
+  // ==================== フィルターパネル描画 ====================
+  function renderFilterPanel() {
+    renderMetaSourceBadge();
+    const catWrap = document.getElementById('catChips');
+    catWrap.innerHTML = '';
+    CATEGORIES.forEach(c => {
+      const chip = document.createElement('button');
+      chip.className = 'cat-chip' + (filterState.cat === c.id ? ' active' : '');
+      chip.style.color = filterState.cat === c.id ? c.color : '';
+      if (filterState.cat === c.id) {
+        chip.style.background = c.color;
+        chip.style.color = '#0a0a0f';
+      }
+      chip.innerHTML = `<span class="sw" style="background:${c.color}"></span>${c.label}`;
+      chip.onclick = () => { filterState.cat = c.id; renderFilterPanel(); applyFilterAndRender(); };
+      catWrap.appendChild(chip);
+    });
+
+    // タグ一覧（現在割り当てられている全タグから生成）
+    const meta = loadMeta();
+    const tagSet = new Set();
+    allSites.forEach(s => (meta[s.path]?.tags || []).forEach(t => tagSet.add(t)));
+
+    const tagRow = document.getElementById('tagRow');
+    const tagWrap = document.getElementById('tagChips');
+    tagWrap.innerHTML = '';
+    if (tagSet.size === 0) {
+      tagRow.style.display = 'none';
+    } else {
+      tagRow.style.display = 'flex';
+      [...tagSet].sort().forEach(tag => {
+        const chip = document.createElement('button');
+        chip.className = 'tag-chip' + (filterState.tags.has(tag) ? ' active' : '');
+        chip.textContent = '#' + tag;
+        chip.onclick = () => {
+          if (filterState.tags.has(tag)) filterState.tags.delete(tag);
+          else filterState.tags.add(tag);
+          renderFilterPanel();
+          applyFilterAndRender();
+        };
+        tagWrap.appendChild(chip);
+      });
+    }
+  }
+
+  // ==================== フィルタ適用 ====================
+  function applyFilterAndRender() {
+    const meta = loadMeta();
+    const q = filterState.search.trim().toLowerCase();
+
+    const filtered = allSites.filter(site => {
+      const m = meta[site.path] || { cat: 'none', tags: [] };
+      if (filterState.cat !== 'all' && m.cat !== filterState.cat) return false;
+      if (filterState.tags.size > 0) {
+        const has = [...filterState.tags].some(t => (m.tags || []).includes(t));
+        if (!has) return false;
+      }
+      if (q) {
+        const hay = (site.name + ' ' + site.desc + ' ' + (m.tags || []).join(' ')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('statCount').textContent = allSites.length;
+    document.getElementById('statShown').textContent = filtered.length;
+    renderCards(filtered);
+  }
+
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'searchInput') {
+      filterState.search = e.target.value;
+      applyFilterAndRender();
+    }
+  });
+
+  // ==================== カード描画 ====================
+  function renderCards(sites) {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('statCount').textContent = sites.length;
-    document.getElementById('statFolders').textContent = totalDirs;
+
+    if (sites.length === 0) {
+      grid.innerHTML = `<div class="message-box" style="grid-column:1/-1;">
+        <div class="icon">◌</div>
+        <h3>該当するサイトが見つかりません</h3>
+        <p style="font-size:0.8rem;margin-top:0.5rem;">検索条件やフィルターを変更してみてください。</p>
+      </div>`;
+      return;
+    }
+
+    const meta = loadMeta();
 
     sites.forEach((site, i) => {
       const icon = icons[i % icons.length];
       const [c1, c2] = colors[i % colors.length];
       const delay = (i * 60) + 'ms';
+      const m = meta[site.path] || { cat: 'none', tags: [] };
+      const cat = CAT_MAP[m.cat] || CAT_MAP.none;
 
-      const card = document.createElement('a');
+      const card = document.createElement('div');
       card.className = 'card';
-      card.href = site.indexUrl;
-      card.target = '_blank';
-      card.rel = 'noopener noreferrer';
       card.style.animationDelay = delay;
-
-      // icon.png があれば画像を、なければグラデーション+絵文字アイコンにフォールバック
-      const iconStyle = site.iconUrl ? '' : `style="background: linear-gradient(135deg, ${c1}, ${c2})"`;
-      const iconInner = site.iconUrl
-        ? `<img src="${escHtml(site.iconUrl)}" alt="" class="card-icon-img" loading="lazy"
-             onerror="this.closest('.card-icon').classList.remove('has-image'); this.closest('.card-icon').style.background='linear-gradient(135deg, ${c1}, ${c2})'; this.replaceWith(document.createTextNode('${icon}'));">`
-        : icon;
-
       card.innerHTML = `
-        <div class="card-header">
-          <div class="card-icon${site.iconUrl ? ' has-image' : ''}" ${iconStyle}>${iconInner}</div>
-          <span class="card-tag">SITE</span>
-        </div>
-        <div class="card-body">
-          <div class="card-title">${escHtml(site.name)}</div>
-          <div class="card-desc">${escHtml(site.desc)}</div>
-        </div>
+        <a class="card-link-area" href="${site.indexUrl}" target="_blank" rel="noopener noreferrer">
+          <div class="card-header">
+            <div class="card-icon" style="background: linear-gradient(135deg, ${c1}, ${c2})">${icon}</div>
+            <span class="card-tag">SITE</span>
+          </div>
+          <div class="card-body">
+            <div class="card-genre" style="color:${cat.color}"><span class="sw"></span>${cat.label}</div>
+            <div class="card-title">${escHtml(site.name)}</div>
+            <div class="card-desc">${escHtml(site.desc)}</div>
+            <div class="card-tags">${(m.tags || []).map(t => `<span>#${escHtml(t)}</span>`).join('')}</div>
+          </div>
+        </a>
         <div class="card-footer">
           <span class="card-path">/${escHtml(site.path)}/</span>
-          <span class="card-link">
-            OPEN
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <button class="edit-btn" title="ジャンル・タグを編集" onclick="toggleEdit(this, '${site.path.replace(/'/g, "\\'")}')">✎</button>
+            <a class="card-link" href="${site.indexUrl}" target="_blank" rel="noopener noreferrer">
+              OPEN
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="edit-panel" id="edit-${cssEscape(site.path)}">
+          <div>
+            <label>GENRE</label>
+            <select id="cat-${cssEscape(site.path)}">
+              ${CATEGORIES.filter(c => c.id !== 'all').map(c => `<option value="${c.id}" ${m.cat === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>TAGS (カンマ区切り)</label>
+            <input type="text" id="tags-${cssEscape(site.path)}" value="${escHtml((m.tags||[]).join(', '))}" placeholder="例: 変換, DB, 開発補助">
+          </div>
+          <div class="edit-actions">
+            <button class="btn small" onclick="saveEdit('${site.path.replace(/'/g, "\\'")}')">保存</button>
+            <button class="btn small ghost" onclick="toggleEdit(null, '${site.path.replace(/'/g, "\\'")}')">閉じる</button>
+          </div>
         </div>
       `;
-
-      // カードクリックでindex.htmlへ（aタグなので自動だが念のため）
       grid.appendChild(card);
     });
   }
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function cssEscape(str) {
+    return str.replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
-  // Enter キーで検索
+  function toggleEdit(btn, path) {
+    const panel = document.getElementById(`edit-${cssEscape(path)}`);
+    panel.classList.toggle('open');
+  }
+
+  function saveEdit(path) {
+    const cat = document.getElementById(`cat-${cssEscape(path)}`).value;
+    const tagsRaw = document.getElementById(`tags-${cssEscape(path)}`).value;
+    const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+    setSiteMeta(path, cat, tags);
+    renderFilterPanel();
+    applyFilterAndRender();
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Enter キーで検索(リポジトリ入力)
   document.getElementById('repoInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') loadRepo();
   });
