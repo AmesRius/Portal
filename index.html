@@ -230,6 +230,16 @@
       text-decoration: none;
       color: inherit;
     }
+    .card-icon.has-image {
+      padding: 0;
+      overflow: hidden;
+    }
+    .card-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
 
     .card:hover {
       border-color: var(--accent);
@@ -412,7 +422,7 @@
 </main>
 
 <script>
-  // カード用アイコン（ランダム選択）
+// カード用アイコン（ランダム選択・icon.png が無い場合のフォールバック用）
   const icons = ['◈','◉','◎','⬡','⬢','◆','▣','⊞','⊟','⬟'];
   const colors = [
     ['#7c6dfa','#fa6d8d'],
@@ -540,6 +550,7 @@
 
             const hasIndex = fileNames.includes('index.html');
             const hasReadme = fileNames.includes('readme.md');
+            const hasIcon = fileNames.includes('icon.png');
 
             if (!hasIndex) return null; // index.html がなければスキップ
 
@@ -555,6 +566,7 @@
               path: dir.path,
               indexUrl: `${baseUrl}/${dir.name}/`,
               rawIndexUrl: `https://github.com/${owner}/${repo}/blob/main/${dir.name}/index.html`,
+              iconUrl: hasIcon ? `${rawBase}/${dir.name}/icon.png` : null,
             };
           } catch { return null; }
         }));
@@ -604,9 +616,17 @@
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
       card.style.animationDelay = delay;
+
+      // icon.png があれば画像を、なければグラデーション+絵文字アイコンにフォールバック
+      const iconStyle = site.iconUrl ? '' : `style="background: linear-gradient(135deg, ${c1}, ${c2})"`;
+      const iconInner = site.iconUrl
+        ? `<img src="${escHtml(site.iconUrl)}" alt="" class="card-icon-img" loading="lazy"
+             onerror="this.closest('.card-icon').classList.remove('has-image'); this.closest('.card-icon').style.background='linear-gradient(135deg, ${c1}, ${c2})'; this.replaceWith(document.createTextNode('${icon}'));">`
+        : icon;
+
       card.innerHTML = `
         <div class="card-header">
-          <div class="card-icon" style="background: linear-gradient(135deg, ${c1}, ${c2})">${icon}</div>
+          <div class="card-icon${site.iconUrl ? ' has-image' : ''}" ${iconStyle}>${iconInner}</div>
           <span class="card-tag">SITE</span>
         </div>
         <div class="card-body">
