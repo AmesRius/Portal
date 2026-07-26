@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOOL_BOX // PORTAL</title>
+<style>
+:root{
+  --bg:#0b0d14;
+  --bg2:#12141f;
+  --panel:#161925;
+  --line:#2a2e42;
+  --ink:#eef0fb;
+  --dim:#8890b0;
+  --pink:#ff2e88;
+  --cyan:#00e5ff;
+  --yellow:#ffe14d;
+  --violet:#9b5cff;
+  --green:#39ff9c;
+  --orange:#ff7a3d;
+  --mono:"JetBrains Mono","Roboto Mono","SFMono-Regular",Consolas,monospace;
+  --disp:"Helvetica Neue",Arial,"Hiragino Sans","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--disp);
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* ===== tech grid backdrop ===== */
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.05) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+}
+body::after{
+  content:"";
+  position:fixed;inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 15% 10%, rgba(155,92,255,0.18), transparent 45%),
+             radial-gradient(circle at 85% 25%, rgba(0,229,255,0.14), transparent 40%),
+             radial-gradient(circle at 50% 90%, rgba(255,46,136,0.12), transparent 45%);
+}
+
+/* ===== decorative geometric shapes (memphis, neon-outline, no emoji) ===== */
+.deco{position:fixed;pointer-events:none;z-index:0;}
+.deco svg{display:block;filter:drop-shadow(0 0 10px currentColor);}
+.deco.d1{top:-30px;left:-30px;width:150px;color:var(--cyan);opacity:0.5;animation:spin 30s linear infinite;}
+.deco.d2{top:80px;right:-50px;width:130px;color:var(--pink);opacity:0.45;animation:spin 22s linear infinite reverse;}
+.deco.d3{bottom:5%;left:6%;width:100px;color:var(--yellow);opacity:0.4;animation:float 6s ease-in-out infinite;}
+.deco.d4{bottom:10%;right:8%;width:90px;color:var(--violet);opacity:0.4;animation:float 7s ease-in-out infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@media (prefers-reduced-motion:reduce){.deco{animation:none!important;}}
+@media (max-width:700px){.deco{transform:scale(0.55);}}
+
+/* ===== header ===== */
+header{
+  position:relative;z-index:2;
+  padding:64px 20px 36px;
+  text-align:center;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:0.72rem;
+  letter-spacing:0.35em;
+  color:var(--cyan);
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.eyebrow::before{content:"// ";color:var(--dim);}
+.logo{
+  font-size:clamp(2.6rem,8vw,5rem);
+  font-weight:900;
+  letter-spacing:-1px;
+  margin:0;
+  line-height:1;
+  text-transform:uppercase;
+  position:relative;
+  display:inline-block;
+}
+.logo .glitch{
+  background:linear-gradient(100deg, var(--cyan), var(--violet) 50%, var(--pink));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  position:relative;
+}
+.logo .bracket{color:var(--yellow); -webkit-text-fill-color:var(--yellow);}
+.tagline{
+  margin:20px auto 0;
+  max-width:560px;
+  font-size:0.92rem;
+  font-weight:500;
+  color:var(--dim);
+  font-family:var(--mono);
+}
+.tagline strong{color:var(--ink);}
+.hr-circuit{
+  width:100%;
+  max-width:640px;
+  margin:28px auto 0;
+  display:block;
+  opacity:0.7;
+}
+
+/* ===== controls ===== */
+.controls{
+  position:relative;z-index:2;
+  max-width:1000px;
+  margin:0 auto;
+  padding:0 20px 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:center;
+}
+.search-box{
+  flex:1 1 280px;
+  max-width:440px;
+  position:relative;
+}
+.search-box::before{
+  content:">";
+  position:absolute;
+  left:16px;top:50%;
+  transform:translateY(-50%);
+  color:var(--cyan);
+  font-family:var(--mono);
+  font-weight:700;
+  pointer-events:none;
+}
+.search-box input{
+  width:100%;
+  padding:14px 18px 14px 34px;
+  font-size:0.95rem;
+  font-weight:600;
+  font-family:var(--mono);
+  border:1px solid var(--line);
+  border-radius:2px;
+  background:var(--panel);
+  color:var(--ink);
+  outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.search-box input::placeholder{color:var(--dim);}
+.search-box input:focus{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan), 0 0 18px rgba(0,229,255,0.3);}
+
+.tag-filter-toggle{
+  border:1px solid var(--line);
+  border-radius:2px;
+  background:var(--panel);
+  color:var(--ink);
+  font-weight:700;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  padding:12px 20px;
+  cursor:pointer;
+  transition:all .15s;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+}
+.tag-filter-toggle:hover{border-color:var(--violet);box-shadow:0 0 16px rgba(155,92,255,0.35);}
+.tag-filter-toggle.active{background:var(--violet);border-color:var(--violet);color:#fff;}
+
+#subtagPanel{
+  max-width:1000px;
+  margin:0 auto 10px;
+  padding:0 20px;
+  display:none;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  position:relative;z-index:2;
+}
+#subtagPanel.open{display:flex;}
+.subtag-chip{
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--dim);
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:0.75rem;
+  font-weight:700;
+  font-family:var(--mono);
+  cursor:pointer;
+  transition:all .15s;
+}
+.subtag-chip.active{background:var(--cyan);color:#0b0d14;border-color:var(--cyan);}
+
+/* ===== category nav ===== */
+nav.cat-nav{
+  position:relative;z-index:2;
+  max-width:1140px;
+  margin:14px auto 40px;
+  padding:0 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+}
+.cat-btn{
+  border:1px solid var(--line);
+  border-radius:2px;
+  padding:10px 18px;
+  font-weight:700;
+  font-size:0.82rem;
+  font-family:var(--mono);
+  background:var(--panel);
+  color:var(--dim);
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+}
+.cat-btn .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
+.cat-btn:hover{color:var(--ink);border-color:var(--dim);}
+.cat-btn.active{color:#0b0d14;}
+.cat-btn[data-cat="all"]{color:var(--ink);}
+.cat-btn[data-cat="all"].active{background:var(--ink);}
+.cat-btn[data-cat="dev"].active{background:var(--cyan);border-color:var(--cyan);}
+.cat-btn[data-cat="edu"].active{background:var(--orange);border-color:var(--orange);}
+.cat-btn[data-cat="research"].active{background:var(--violet);border-color:var(--violet);}
+.cat-btn[data-cat="career"].active{background:var(--pink);border-color:var(--pink);}
+.cat-btn[data-cat="minecraft"].active{background:var(--green);border-color:var(--green);}
+.cat-btn[data-cat="game"].active{background:var(--yellow);border-color:var(--yellow);}
+
+/* ===== section headers ===== */
+main{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 20px 100px;}
+.section-block{margin-bottom:64px;}
+.section-head{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:22px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+}
+.section-icon{
+  width:54px;height:54px;
+  flex-shrink:0;
+  border:1px solid var(--line);
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--panel);
+  clip-path:polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);
+}
+.section-icon svg{width:28px;height:28px;filter:drop-shadow(0 0 6px currentColor);}
+.section-title{
+  font-size:1.3rem;
+  font-weight:800;
+  margin:0;
+  letter-spacing:0.5px;
+}
+.section-title small{
+  display:block;
+  font-size:0.72rem;
+  font-weight:500;
+  font-family:var(--mono);
+  color:var(--dim);
+  margin-top:4px;
+  letter-spacing:0.1em;
+}
+.section-count{
+  margin-left:auto;
+  font-family:var(--mono);
+  font-size:0.75rem;
+  color:var(--dim);
+  border:1px solid var(--line);
+  padding:4px 10px;
+  border-radius:20px;
+}
+
+/* ===== grid & cards ===== */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
+}
+.card{
+  position:relative;
+  background:linear-gradient(160deg, var(--panel), var(--bg2));
+  border:1px solid var(--line);
+  border-radius:2px;
+  padding:20px 20px 18px;
+  transition:transform .18s, border-color .18s, box-shadow .18s;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  min-height:160px;
+  overflow:hidden;
+}
+.card::before{
+  /* corner accent bracket */
+  content:"";
+  position:absolute;top:0;left:0;
+  width:22px;height:22px;
+  border-top:2px solid currentColor;
+  border-left:2px solid currentColor;
+  opacity:0.9;
+}
+.card::after{
+  content:"";
+  position:absolute;bottom:0;right:0;
+  width:22px;height:22px;
+  border-bottom:2px solid currentColor;
+  border-right:2px solid currentColor;
+  opacity:0.9;
+}
+.card[data-cat="dev"]{color:var(--cyan);}
+.card[data-cat="edu"]{color:var(--orange);}
+.card[data-cat="research"]{color:var(--violet);}
+.card[data-cat="career"]{color:var(--pink);}
+.card[data-cat="minecraft"]{color:var(--green);}
+.card[data-cat="game"]{color:var(--yellow);}
+.card:hover{transform:translateY(-4px);border-color:currentColor;box-shadow:0 8px 30px -8px currentColor;}
+
+.card .id-tag{
+  font-family:var(--mono);
+  font-size:0.68rem;
+  color:currentColor;
+  opacity:0.8;
+  margin-bottom:10px;
+  letter-spacing:0.05em;
+}
+.card h3{
+  margin:0 0 8px;
+  font-size:1.05rem;
+  font-weight:800;
+  line-height:1.35;
+  color:var(--ink);
+}
+.card p{
+  margin:0 0 16px;
+  font-size:0.85rem;
+  color:var(--dim);
+  line-height:1.6;
+  flex-grow:1;
+}
+.card .subtags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.card .subtags span{
+  font-size:0.66rem;
+  font-weight:700;
+  font-family:var(--mono);
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--line);
+  color:var(--dim);
+  border-radius:2px;
+  padding:3px 8px;
+}
+.card .hub-badge{
+  position:absolute;
+  top:16px;right:16px;
+  background:var(--green);
+  color:#0b0d14;
+  font-size:0.65rem;
+  font-family:var(--mono);
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:2px;
+  letter-spacing:0.05em;
+}
+.card.hub{border-style:solid;border-width:1px;box-shadow:0 0 0 1px rgba(57,255,156,0.15) inset;}
+
+.empty-msg{
+  text-align:center;
+  padding:50px 20px;
+  font-weight:700;
+  font-family:var(--mono);
+  font-size:1rem;
+  color:var(--dim);
+  border:1px dashed var(--line);
+  border-radius:2px;
+}
+
+/* ===== add tool card ===== */
+.add-card{
+  border:1px dashed var(--line);
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  color:var(--dim);
+  min-height:160px;
+  box-shadow:none;
+}
+.add-card::before,.add-card::after{display:none;}
+.add-card:hover{transform:none;box-shadow:none;border-color:var(--dim);color:var(--ink);}
+
+/* ===== modal ===== */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(6,7,12,0.8);
+  backdrop-filter:blur(4px);
+  z-index:50;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--bg2);
+  border:1px solid var(--line);
+  border-radius:2px;
+  max-width:640px;
+  width:100%;
+  max-height:85vh;
+  overflow-y:auto;
+  padding:32px;
+  position:relative;
+  box-shadow:0 0 60px rgba(0,229,255,0.08);
+}
+.modal-box h2{margin-top:0;font-size:1.4rem;font-weight:800;}
+.modal-box p{color:var(--dim);line-height:1.7;}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  width:34px;height:34px;
+  border-radius:2px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--ink);
+  font-weight:900;
+  cursor:pointer;
+  font-size:1.05rem;
+  line-height:1;
+  transition:border-color .15s;
+}
+.modal-close:hover{border-color:var(--pink);color:var(--pink);}
+.modal-box .grid{margin-top:22px;}
+.modal-box .card{min-height:120px;color:var(--green);}
+
+.open-link{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;
+  border:1px solid var(--cyan);
+  color:var(--cyan);
+  padding:10px 20px;
+  border-radius:2px;
+  font-weight:700;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  text-decoration:none;
+  transition:all .15s;
+}
+.open-link:hover{background:var(--cyan);color:#0b0d14;box-shadow:0 0 18px rgba(0,229,255,0.4);}
+
+footer{
+  position:relative;z-index:2;
+  text-align:center;
+  padding:40px 20px 70px;
+  font-size:0.75rem;
+  font-family:var(--mono);
+  color:var(--dim);
+  letter-spacing:0.05em;
+}
+footer .foot-line{
+  width:60px;height:1px;
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+  margin:0 auto 16px;
+}
+
+@media (max-width:480px){
+  .logo{font-size:2.1rem;}
+  .section-icon{width:44px;height:44px;}
+  .section-icon svg{width:22px;height:22px;}
+  .cat-btn{font-size:0.72rem;padding:8px 12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="deco d1"><svg viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="2" stroke-dasharray="6 8"/><circle cx="50" cy="50" r="4" fill="currentColor"/></svg></div>
+<div class="deco d2"><svg viewBox="0 0 100 100" fill="none"><polygon points="50,4 96,74 4,74" stroke="currentColor" stroke-width="2"/></svg></div>
+<div class="deco d3"><svg viewBox="0 0 100 100" fill="none"><rect x="10" y="10" width="80" height="80" stroke="currentColor" stroke-width="2" transform="rotate(15 50 50)"/></svg></div>
+<div class="deco d4"><svg viewBox="0 0 100 100" fill="none"><path d="M10 50 L35 20 L60 50 L85 20" stroke="currentColor" stroke-width="3" fill="none"/><path d="M10 80 L35 50 L60 80 L85 50" stroke="currentColor" stroke-width="3" fill="none"/></svg></div>
+
+<header>
+  <div class="eyebrow">SYSTEM.PORTAL.V2</div>
+  <h1 class="logo"><span class="bracket">[</span><span class="glitch">TOOL_BOX</span><span class="bracket">]</span></h1>
+  <div class="tagline">自作ツールをジャンル別に集約した <strong>ローカル製 開発ポータル</strong> — 随時アップデート中</div>
+  <svg class="hr-circuit" viewBox="0 0 640 20" preserveAspectRatio="none">
+    <line x1="0" y1="10" x2="220" y2="10" stroke="#2a2e42" stroke-width="2"/>
+    <circle cx="230" cy="10" r="4" fill="#00e5ff"/>
+    <line x1="240" y1="10" x2="280" y2="10" stroke="#00e5ff" stroke-width="2"/>
+    <path d="M280 10 L300 10 L300 0" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <line x1="300" y1="0" x2="340" y2="0" stroke="#2a2e42" stroke-width="2"/>
+    <path d="M280 10 L300 10 L300 20" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <line x1="300" y1="20" x2="340" y2="20" stroke="#2a2e42" stroke-width="2"/>
+    <circle cx="350" cy="0" r="3" fill="#ff2e88"/>
+    <circle cx="350" cy="20" r="3" fill="#9b5cff"/>
+    <line x1="360" y1="10" x2="400" y2="10" stroke="#00e5ff" stroke-width="2"/>
+    <circle cx="410" cy="10" r="4" fill="#00e5ff"/>
+    <line x1="420" y1="10" x2="640" y2="10" stroke="#2a2e42" stroke-width="2"/>
+  </svg>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="search tools / keywords...">
+  </div>
+  <button class="tag-filter-toggle" id="subtagToggle">#TAGS_FILTER</button>
+</div>
+
+<div id="subtagPanel"></div>
+
+<nav class="cat-nav" id="catNav">
+  <button class="cat-btn active" data-cat="all"><span class="dot"></span>ALL</button>
+  <button class="cat-btn" data-cat="dev"><span class="dot" style="color:var(--cyan)"></span>開発・データ処理</button>
+  <button class="cat-btn" data-cat="edu"><span class="dot" style="color:var(--orange)"></span>探究・教育</button>
+  <button class="cat-btn" data-cat="research"><span class="dot" style="color:var(--violet)"></span>研究・学術</button>
+  <button class="cat-btn" data-cat="career"><span class="dot" style="color:var(--pink)"></span>就活・ビジネス</button>
+  <button class="cat-btn" data-cat="minecraft"><span class="dot" style="color:var(--green)"></span>マインクラフト</button>
+  <button class="cat-btn" data-cat="game"><span class="dot" style="color:var(--yellow)"></span>ゲーム・エンタメ</button>
+</nav>
+
+<main id="main"></main>
+
+<footer>
+  <div class="foot-line"></div>
+  © TOOL_BOX PORTAL — BUILD: CONTINUOUS<br>
+  随時ツール追加中
+</footer>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script>
+/* ============ アイコン（カテゴリ別・幾何学ラインアイコン） ============ */
+const ICONS = {
+  dev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4L2 12l6 8M16 4l6 8-6 8"/></svg>',
+  edu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 8l10-5 10 5-10 5-10-5z"/><path d="M6 11v6c0 1.5 3 3 6 3s6-1.5 6-3v-6"/></svg>',
+  research: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>',
+  career: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  minecraft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>',
+  game: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="10" rx="4"/><path d="M7 10v4M5 12h4M16 11h.01M19 13h.01"/></svg>',
+};
+
+/* ============ データ定義（拡張しやすいように配列で管理） ============ */
+const CATEGORIES = [
+  {id:"dev", title:"開発・データ処理", sub:"DEV & DATA TOOLS"},
+  {id:"edu", title:"探究・教育・ワークショップ", sub:"EDUCATION & FACILITATION"},
+  {id:"research", title:"研究・論文・学術執筆", sub:"ACADEMIC & RESEARCH"},
+  {id:"career", title:"就活・ビジネス・プレゼン", sub:"CAREER & BUSINESS"},
+  {id:"minecraft", title:"マインクラフト攻略・管理", sub:"MINECRAFT HUB"},
+  {id:"game", title:"ゲーム・エンタメ・クリエイティブ", sub:"GAMES & CREATIVE"},
+];
+
+const TOOLS = [
+  {id:"csv2json", cat:"dev", name:"CSVtoJSONコンバーター", desc:"モックデータ・DB作成用のCSV→JSON変換ツール。", tags:["変換","DB","開発補助"], url:"../CSVtoJSONコンバーター/index.html"},
+  {id:"uiedit", cat:"dev", name:"UI調整エディタ", desc:"GUI上でのプロトタイプデザイン微調整＆CSS抽出。", tags:["UI","デザイン","開発補助"], url:"../UI調整エディタ/index.html"},
+  {id:"livepreview", cat:"dev", name:"livepreview", desc:"複数形式のリアルタイムブラウザプレビュー・編集。", tags:["プレビュー","開発補助"], url:"../livepreview/index.html"},
+  {id:"portal-local", cat:"dev", name:"Portal-local", desc:"ローカルのプロトタイプ／過去制作物をダッシュボード化。", tags:["管理","ダッシュボード"], url:"../Portal-local/index.html"},
+  {id:"codesplit", cat:"dev", name:"コード分割&統合", desc:"単一ファイルのHTML/CSS/JSを自動分割・一括保存。", tags:["開発補助","変換"], url:"../コード分割&統合/index.html"},
+  {id:"dbgen", cat:"dev", name:"データベースジェネレーター", desc:"CSVからブラウザ完結のWeb DBを自動生成。", tags:["DB","自動生成"], url:"../データベースジェネレーター/index.html"},
+  {id:"datareplace", cat:"dev", name:"データ置換ツール", desc:"アンケート等のデータクレンジング・コーディング支援。", tags:["データ処理","研究補助"], url:"../データ置換ツール/index.html"},
+  {id:"mdcleaner", cat:"dev", name:"マークダウンクリーナー", desc:"AI生成テキストなどの記法を削ぎ落としプレーンテキスト化。", tags:["テキスト処理","AI"], url:"../マークダウンクリーナー/index.html"},
+  {id:"aichatarchive", cat:"dev", name:"AI応答記録サイト（AIChatArchive）", desc:"ChatGPT/Gemini等の対話記録・整理。", tags:["AI","記録","アーカイブ"], url:"../AI応答記録サイト（AIChatArchive）/index.html"},
+
+  {id:"tanQ-db", cat:"edu", name:"探究支援サイト＆探究テーマDB", desc:"1万件のテーマ検索で探究学習をサポート。", tags:["DB","探究"], url:"../探究支援サイト＆探究テーマDB/index.html"},
+  {id:"icebreak", cat:"edu", name:"アイスブレイクアイデア集", desc:"目的別ワークショップネタの検索システム。", tags:["ワークショップ","ファシリテーション"], url:"../アイスブレイクアイデア集/index.html"},
+  {id:"checkin2000", cat:"edu", name:"チェックイン2000", desc:"2000種のデータベースから選ぶチェックイン質問生成。", tags:["ワークショップ","DB"], url:"../チェックイン2000/index.html"},
+  {id:"checkin-gacha", cat:"edu", name:"チェックイン問いガチャ", desc:"クリエイティブな問いをワンクリックで生成。", tags:["ワークショップ","ガチャ"], url:"../チェックイン問いガチャ/index.html"},
+  {id:"edu-industry-db", cat:"edu", name:"教育業界データベース", desc:"教育産業の業態一覧・検索・リアルタイム集計。", tags:["就活","業界研究","DB"], url:"../教育業界データベース/index.html"},
+  {id:"cardmaker", cat:"edu", name:"偶然発明ワーク用 カードメーカー", desc:"単語リストから印刷用カードレイアウトを自動生成。", tags:["ワークショップ","印刷"], url:"../偶然発明ワーク用 カードメーカー/index.html"},
+  {id:"future-newspaper", cat:"edu", name:"未来新聞ジェネレーター", desc:"2040年の科学技術失敗記事を書くワーク用ツール。", tags:["ワークショップ","創作"], url:"../未来新聞ジェネレーター/index.html"},
+  {id:"kougakusha-quiz", cat:"edu", name:"興学社4択クイズ", desc:"社訓を学ぶ動的クイズアプリケーション。", tags:["クイズ","研修"], url:"../興学社4択クイズ/index.html"},
+  {id:"kids-lang-quiz", cat:"edu", name:"小学生向け外国語クイズ", desc:"Duolingo風の語学学習クイズ。", tags:["クイズ","語学"], url:"../小学生向け外国語クイズ/index.html"},
+
+  {id:"scale-gen", cat:"research", name:"尺度ジェネレーター", desc:"心理尺度の設定からGASフォーム生成・採点データ出力。", tags:["心理尺度","自動生成"], url:"../尺度ジェネレーター/index.html"},
+  {id:"apa-sort", cat:"research", name:"APA文献リスト ソートメーカー", desc:"文献情報の並び替え・整列。", tags:["執筆","文献"], url:"../APA文献リスト ソートメーカー/index.html"},
+  {id:"jstage-apa", cat:"research", name:"J-STAGE→APA方式コンバーター", desc:"J-STAGEメタデータをAPAフォーマットへ変換。", tags:["変換","文献"], url:"../J-STAGE→APA方式コンバーター/index.html"},
+  {id:"latextable", cat:"research", name:"LaTeXTableConverter", desc:"JASP出力結果などの表データをコピペ用フォーマットへ変換。", tags:["変換","統計"], url:"../LaTeXTableConverter/index.html"},
+  {id:"charcount", cat:"research", name:"文字数カウントVer1", desc:"文字種分析・原稿用紙換算・整形対応のテキストエディタ。", tags:["執筆","ライティング","開発補助"], url:"../文字数カウントVer1/index.html"},
+
+  {id:"spi-calc", cat:"career", name:"SPI計算機", desc:"SPI非言語分野の解法・学習用スマホ最適化計算機。", tags:["就活","計算"], url:"../SPI/index.html"},
+  {id:"company-prompt", cat:"career", name:"企業研究プロンプトジェネレーター", desc:"AIを活用した企業分析用プロンプトの自動作成。", tags:["就活","AI","業界研究"], url:"../企業研究プロンプトジェネレーター/index.html"},
+  {id:"plancraft", cat:"career", name:"PlanCraft", desc:"プロ仕様テンプレートによるブラウザ完結型・企画書作成ツール。", tags:["企画","プレゼン"], url:"../PlanCraft/index.html"},
+  {id:"lt-alarm", cat:"career", name:"発表用アラーム", desc:"5分間LT（ライトニングトーク）やピッチ専用のタイマー。", tags:["プレゼン","タイマー"], url:"../発表用アラーム/index.html"},
+
+  {id:"minecraft-hub", cat:"minecraft", name:"マイクラ・ツールハブ", desc:"マイクラ関連自作ツールを集約した親ポータル。クリックで5ツールへ。", tags:["ハブ"], hub:true, children:[
+    {id:"mc-goalsheet", name:"マイクラ目標シート", desc:"作業目的・工程・期限・資材のタスク管理。", url:"#"},
+    {id:"mc-trade", name:"村人交易図鑑", desc:"エメラルド交換レートの記録・閲覧。", url:"#"},
+    {id:"mc-json", name:"JSON作成サイト", desc:"交易図鑑登録用JSONの作成ツール。", url:"#"},
+    {id:"mc-coords", name:"座標一覧表＆計算機", desc:"現世・ネザーの座標管理および相互変換計算。", url:"#"},
+  ]},
+
+  {id:"tarot", cat:"game", name:"タロット占い", desc:"大アルカナ22枚による1枚〜3枚引きスプレッド鑑定。", tags:["占い"], url:"#"},
+  {id:"drunk-balance", cat:"game", name:"酔っ払いバランス", desc:"バランスを取りながら遊ぶハイパーカジュアルゲーム。", tags:["ミニゲーム"], url:"#"},
+  {id:"candybox", cat:"game", name:"キャンディーボックス", desc:"かわいいデザインと配色にこだわった落ち物パズルゲーム。", tags:["ミニゲーム","デザイン"], url:"#"},
+  {id:"design-ref", cat:"game", name:"デザイン情報サイト", desc:"歴史・構成要素・配色などを製図風に整理したリファレンス。", tags:["デザイン","リファレンス"], url:"#"},
+];
+
+/* ============ 状態 ============ */
+let state = { cat:"all", search:"", subtags:new Set() };
+
+/* ============ サブタグ一覧生成 ============ */
+function allSubtags(){
+  const s = new Set();
+  TOOLS.forEach(t=>(t.tags||[]).forEach(tag=>s.add(tag)));
+  return [...s].sort();
+}
+function renderSubtagPanel(){
+  const panel = document.getElementById("subtagPanel");
+  panel.innerHTML = "";
+  allSubtags().forEach(tag=>{
+    const chip = document.createElement("div");
+    chip.className = "subtag-chip" + (state.subtags.has(tag) ? " active" : "");
+    chip.textContent = "#" + tag;
+    chip.onclick = () => {
+      if(state.subtags.has(tag)) state.subtags.delete(tag);
+      else state.subtags.add(tag);
+      renderSubtagPanel();
+      render();
+    };
+    panel.appendChild(chip);
+  });
+}
+
+/* ============ フィルタリング ============ */
+function matchTool(t){
+  if(state.cat !== "all" && t.cat !== state.cat) return false;
+  if(state.search){
+    const q = state.search.toLowerCase();
+    const hay = (t.name + " " + t.desc + " " + (t.tags||[]).join(" ")).toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  if(state.subtags.size > 0){
+    const tags = t.tags || [];
+    const has = [...state.subtags].some(st => tags.includes(st));
+    if(!has) return false;
+  }
+  return true;
+}
+
+/* ============ カード生成 ============ */
+function cardHTML(t, idx){
+  const tagsHtml = (t.tags||[]).map(tag=>`<span>#${tag}</span>`).join("");
+  const idNum = String(idx+1).padStart(3,"0");
+  return `
+    <div class="card ${t.hub?'hub':''}" data-cat="${t.cat}" data-id="${t.id}">
+      <div class="id-tag">ID.${idNum}</div>
+      <h3>${t.name}</h3>
+      <p>${t.desc}</p>
+      <div class="subtags">${tagsHtml}</div>
+      ${t.hub ? '<div class="hub-badge">5 TOOLS</div>' : ''}
+    </div>
+  `;
+}
+
+/* ============ メイン描画 ============ */
+function render(){
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  const cats = state.cat === "all" ? CATEGORIES : CATEGORIES.filter(c=>c.id===state.cat);
+  let totalShown = 0;
+
+  cats.forEach(cat=>{
+    const tools = TOOLS.filter(t=>t.cat===cat.id).filter(matchTool);
+    if(tools.length === 0) return;
+    totalShown += tools.length;
+
+    const section = document.createElement("section");
+    section.className = "section-block";
+    section.innerHTML = `
+      <div class="section-head">
+        <div class="section-icon" style="color:var(--${cat.id==='dev'?'cyan':cat.id==='edu'?'orange':cat.id==='research'?'violet':cat.id==='career'?'pink':cat.id==='minecraft'?'green':'yellow'})">${ICONS[cat.id]}</div>
+        <h2 class="section-title">${cat.title}<small>${cat.sub}</small></h2>
+        <div class="section-count">${tools.length}</div>
+      </div>
+      <div class="grid">
+        ${tools.map((t,i)=>cardHTML(t,i)).join("")}
+        <div class="card add-card">+ NEW_TOOL.SOON</div>
+      </div>
+    `;
+    main.appendChild(section);
+  });
+
+  if(totalShown === 0){
+    main.innerHTML = `<div class="empty-msg">NO_RESULTS — 該当するツールが見つかりませんでした</div>`;
+  }
+
+  main.querySelectorAll(".card[data-id]").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const id = card.getAttribute("data-id");
+      const tool = TOOLS.find(t=>t.id===id);
+      openModal(tool);
+    });
+  });
+}
+
+/* ============ モーダル ============ */
+function openModal(tool){
+  const overlay = document.getElementById("modalOverlay");
+  const box = document.getElementById("modalBox");
+
+  if(tool.hub){
+    box.innerHTML = `
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <h2>${tool.name}</h2>
+      <p>${tool.desc}</p>
+      <div class="grid">
+        ${tool.children.map((c,i)=>`
+          <div class="card" data-cat="minecraft" onclick="window.open('${c.url}','_blank')">
+            <div class="id-tag">MC.${String(i+1).padStart(2,'0')}</div>
+            <h3>${c.name}</h3>
+            <p>${c.desc}</p>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  } else {
+    box.innerHTML = `
+      <h2>${tool.name}</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <p>${tool.desc}</p>
+      <div class="subtags" style="margin-bottom:22px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${(tool.tags||[]).map(tag=>`<span style="border:1px solid var(--line);border-radius:2px;padding:3px 10px;font-size:0.72rem;font-family:var(--mono);color:var(--dim);">#${tag}</span>`).join("")}
+      </div>
+      <a href="${tool.url}" target="_blank" class="open-link">OPEN_TOOL →</a>
+    `;
+  }
+  overlay.classList.add("open");
+}
+function closeModal(){ document.getElementById("modalOverlay").classList.remove("open"); }
+document.getElementById("modalOverlay").addEventListener("click", e=>{
+  if(e.target.id === "modalOverlay") closeModal();
+});
+
+/* ============ カテゴリナビ ============ */
+document.getElementById("catNav").addEventListener("click", e=>{
+  const btn = e.target.closest(".cat-btn");
+  if(!btn) return;
+  document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  state.cat = btn.getAttribute("data-cat");
+  render();
+});
+
+/* ============ 検索 ============ */
+document.getElementById("searchInput").addEventListener("input", e=>{
+  state.search = e.target.value.trim();
+  render();
+});
+
+/* ============ サブタグトグル ============ */
+document.getElementById("subtagToggle").addEventListener("click", e=>{
+  const panel = document.getElementById("subtagPanel");
+  panel.classList.toggle("open");
+  e.target.classList.toggle("active");
+});
+
+/* ============ 初期化 ============ */
+renderSubtagPanel();
+render();
+</script>
+</body>
+</html>
