@@ -1,0 +1,151 @@
+{
+  "csv2json": {
+    "category": "dev",
+    "tags": ["変換", "DB", "開発補助"]
+  },
+  "uiedit": {
+    "category": "dev",
+    "tags": ["UI", "デザイン", "開発補助"]
+  },
+  "livepreview": {
+    "category": "dev",
+    "tags": ["プレビュー", "開発補助"]
+  },
+  "portal-local": {
+    "category": "dev",
+    "tags": ["管理", "ダッシュボード"]
+  },
+  "codesplit": {
+    "category": "dev",
+    "tags": ["開発補助", "変換"]
+  },
+  "dbgen": {
+    "category": "dev",
+    "tags": ["DB", "自動生成"]
+  },
+  "datareplace": {
+    "category": "dev",
+    "tags": ["データ処理", "研究補助"]
+  },
+  "mdcleaner": {
+    "category": "dev",
+    "tags": ["テキスト処理", "AI"]
+  },
+  "aichatarchive": {
+    "category": "dev",
+    "tags": ["AI", "記録", "アーカイブ"]
+  },
+
+  "tanQ-db": {
+    "category": "edu",
+    "tags": ["DB", "探究"]
+  },
+  "icebreak": {
+    "category": "edu",
+    "tags": ["ワークショップ", "ファシリテーション"]
+  },
+  "checkin2000": {
+    "category": "edu",
+    "tags": ["ワークショップ", "DB"]
+  },
+  "checkin-gacha": {
+    "category": "edu",
+    "tags": ["ワークショップ", "ガチャ"]
+  },
+  "edu-industry-db": {
+    "category": "edu",
+    "tags": ["就活", "業界研究", "DB"]
+  },
+  "cardmaker": {
+    "category": "edu",
+    "tags": ["ワークショップ", "印刷"]
+  },
+  "future-newspaper": {
+    "category": "edu",
+    "tags": ["ワークショップ", "創作"]
+  },
+  "kougakusha-quiz": {
+    "category": "edu",
+    "tags": ["クイズ", "研修"]
+  },
+  "kids-lang-quiz": {
+    "category": "edu",
+    "tags": ["クイズ", "語学"]
+  },
+
+  "scale-gen": {
+    "category": "research",
+    "tags": ["心理尺度", "自動生成"]
+  },
+  "apa-sort": {
+    "category": "research",
+    "tags": ["執筆", "文献"]
+  },
+  "jstage-apa": {
+    "category": "research",
+    "tags": ["変換", "文献"]
+  },
+  "latextable": {
+    "category": "research",
+    "tags": ["変換", "統計"]
+  },
+  "charcount": {
+    "category": "research",
+    "tags": ["執筆", "ライティング", "開発補助"]
+  },
+
+  "spi-calc": {
+    "category": "career",
+    "tags": ["就活", "計算"]
+  },
+  "company-prompt": {
+    "category": "career",
+    "tags": ["就活", "AI", "業界研究"]
+  },
+  "plancraft": {
+    "category": "career",
+    "tags": ["企画", "プレゼン"]
+  },
+  "lt-alarm": {
+    "category": "career",
+    "tags": ["プレゼン", "タイマー"]
+  },
+
+  "minecraft-hub": {
+    "category": "minecraft",
+    "tags": ["ハブ"]
+  },
+  "mc-goalsheet": {
+    "category": "minecraft",
+    "tags": ["タスク管理"]
+  },
+  "mc-trade": {
+    "category": "minecraft",
+    "tags": ["交易", "記録"]
+  },
+  "mc-json": {
+    "category": "minecraft",
+    "tags": ["JSON", "開発補助"]
+  },
+  "mc-coords": {
+    "category": "minecraft",
+    "tags": ["座標", "計算"]
+  },
+
+  "tarot": {
+    "category": "game",
+    "tags": ["占い"]
+  },
+  "drunk-balance": {
+    "category": "game",
+    "tags": ["ミニゲーム"]
+  },
+  "candybox": {
+    "category": "game",
+    "tags": ["ミニゲーム", "デザイン"]
+  },
+  "design-ref": {
+    "category": "game",
+    "tags": ["デザイン", "リファレンス"]
+  }
+}
