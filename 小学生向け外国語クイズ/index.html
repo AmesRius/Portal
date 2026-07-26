@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生向け外国語クイズ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #c8e6c9 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #1976d2;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .question-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .audio-section {
+            margin-bottom: 40px;
+        }
+
+        .audio-button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .audio-button:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+        }
+
+        .audio-button.playing {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .audio-text {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .fallback-display {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .fallback-display.playing {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+
+        .fallback-text {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .fallback-description {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .next-button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 40px;
+        }
+
+        .next-button:hover {
+            background: #45a049;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .option-button {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .option-button:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .option-button.selected {
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
+
+        .option-button.correct {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #d32f2f;
+        }
+
+        .option-button.incorrect {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .option-button.disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .option-button:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .option-language {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .playing-indicator {
+            font-size: 12px;
+            color: #1976d2;
+            animation: pulse 1s infinite;
+        }
+
+        .answer-button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .answer-button:hover:not(:disabled) {
+            background: #f57c00;
+        }
+
+        .answer-button:disabled {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .explanation {
+            background: #fff9c4;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .explanation h3 {
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+
+        .explanation p {
+            color: #5d4037;
+            white-space: pre-line;
+        }
+
+        .progress-section {
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            background: #ddd;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            background: #1976d2;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .completion-screen h1 {
+            color: #1976d2;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .score-emoji {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .score-text {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 30px;
+        }
+
+        .restart-button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .restart-button:hover {
+            background: #1565c0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .question-title {
+                font-size: 28px;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .audio-button {
+                width: 80px;
+                height: 80px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>言語クイズ</h1>
+            <div class="header-info">
+                <span id="questionNumber">第1問</span>
+                <span id="progressCounter">1 / 5</span>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="main-content" id="gameContent">
+            <!-- 問題タイトル -->
+            <h2 class="question-title" id="questionTitle">第1問</h2>
+
+            <!-- 音声セクション -->
+            <div class="audio-section">
+                <button class="audio-button" id="audioButton" onclick="playQuestionAudio()">
+                    🔊
+                </button>
+                <p class="audio-text">音声マークをクリックして問題を聞こう！</p>
+                
+                <!-- 音声フォールバック表示 -->
+                <div id="audioFallback" class="fallback-display hidden">
+                    <p class="fallback-text" id="fallbackText"></p>
+                    <!--<p class="fallback-description">音声が再生されない場合は、上記のテキストをご確認ください</p>-->
+                </div>
+                
+                <!-- 現在再生中の音声表示 -->
+                <div id="audioPlaying" class="fallback-display playing hidden">
+                    <p class="fallback-text" id="playingText"></p>
+                </div>
+            </div>
+
+            <!-- 次へボタン -->
+            <button class="next-button" id="nextButton" onclick="showOptions()">次へ</button>
+
+            <!-- 選択肢 -->
+            <div id="optionsSection" class="hidden">
+                <div class="options-grid" id="optionsGrid">
+                    <!-- 動的に生成 -->
+                </div>
+
+                <!-- 回答ボタン -->
+                <button class="answer-button" id="answerButton" onclick="submitAnswer()" disabled>回答</button>
+
+                <!-- 解説 -->
+                <div id="explanation" class="explanation hidden">
+                    <h3>解説</h3>
+                    <p id="explanationText"></p>
+                </div>
+
+                <!-- 次の問題へボタン -->
+                <button class="next-button hidden" id="nextQuestionButton" onclick="nextQuestion()">次の問題へ進む</button>
+
+                <!-- 結果を見るボタン -->
+                <button class="next-button hidden" id="showResultButton" onclick="showResult()">結果を見る</button>
+            </div>
+        </div>
+
+        <!-- 完了画面 -->
+        <div class="completion-screen hidden" id="completionScreen">
+            <h1>🎉 お疲れさま！</h1>
+            <div class="score-emoji" id="scoreEmoji">🏆</div>
+            <p class="score-text">あなたのスコア</p>
+            <p class="final-score" id="finalScore">5 / 5</p>
+            <button class="restart-button" onclick="restartGame()">もう一度チャレンジ</button>
+        </div>
+
+        <!-- 進捗バー -->
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+            </div>
+            <p class="progress-text" id="progressText">進捗: 1 / 5</p>
+        </div>
+    </div>
+
+    <script>
+        // 問題データ
+        const questions = [
+            {
+                questionId: 1,
+                questionText: "いぬ",
+                questionLang: "ja-JP",
+                options: [
+                    { label: "いぬ", text: "いぬ", lang: "ja-JP", language: "日本語" },
+                    { label: "Dog", text: "Dog", lang: "en-US", language: "英語" },
+                    { label: "狗", text: "狗", lang: "zh-CN", language: "中国語（簡体）" },
+                    { label: "Cane", text: "Cane", lang: "it-IT", language: "イタリア語" }
+                ],
+                correctIndex: 0,
+                explanation: "正解：いぬ\n他の選択肢は、Dog=英語、狗=中国語（簡体）、Cane=イタリア語 だったよ！"
+            },
+            {
+                questionId: 2,
+                questionText: "Cat",
+                questionLang: "en-US",
+                options: [
+                    { label: "ねこ", text: "ねこ", lang: "ja-JP", language: "日本語" },
+                    { label: "Cat", text: "Cat", lang: "en-US", language: "英語" },
+                    { label: "猫", text: "猫", lang: "zh-CN", language: "中国語（簡体）" },
+                    { label: "고양이", text: "고양이", lang: "ko-KR", language: "韓国語" }
+                ],
+                correctIndex: 1,
+                explanation: "正解：Cat（英語）\n他の選択肢は、ねこ=日本語、猫=中国語（簡体）、고양이=韓国語 だったよ！"
+            },
+            {
+                questionId: 3,
+                questionText: "Hoa",
+                questionLang: "vi-VN",
+                options: [
+                    { label: "はな", text: "はな", lang: "ja-JP", language: "日本語" },
+                    { label: "Flower", text: "Flower", lang: "en-US", language: "英語" },
+                    { label: "花", text: "花", lang: "zh-CN", language: "中国語（簡体）" },
+                    { label: "Hoa", text: "Hoa", lang: "vi-VN", language: "ベトナム語" }
+                ],
+                correctIndex: 3,
+                explanation: "正解：Hoa（ベトナム語）\n他の選択肢は、はな=日本語、Flower=英語、花=中国語（簡体） だったよ！"
+            },
+            {
+                questionId: 4,
+                questionText: "물",
+                questionLang: "ko-KR",
+                options: [
+                    { label: "みず", text: "みず", lang: "ja-JP", language: "日本語" },
+                    { label: "Water", text: "Water", lang: "en-US", language: "英語" },
+                    { label: "水", text: "水", lang: "zh-CN", language: "中国語（簡体）" },
+                    { label: "물", text: "물", lang: "ko-KR", language: "韓国語" }
+                ],
+                correctIndex: 3,
+                explanation: "正解：물（韓国語）\n他の選択肢は、みず=日本語、Water=英語、水=中国語（簡体） だったよ！"
+            },
+            {
+                questionId: 5,
+                questionText: "Hello",
+                questionLang: "en-US",
+                options: [
+                    { label: "こんにちは", text: "こんにちは", lang: "ja-JP", language: "日本語" },
+                    { label: "Hello", text: "Hello", lang: "en-US", language: "英語" },
+                    { label: "你好", text: "你好", lang: "zh-CN", language: "中国語（簡体）" },
+                    { label: "Ciao", text: "Ciao", lang: "it-IT", language: "ベトナム語" }
+                ],
+                correctIndex: 1,
+                explanation: "正解：Hello（英語）\n他の選択肢は、こんにちは=日本語、你好=中国語（簡体）、Ciao=イタリア語 だったよ！"
+            }
+        ];
+
+        // ゲーム状態
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+        let answered = false;
+        let score = 0;
+        let audioPlaying = '';
+        let audioFallback = '';
+
+        // 言語名マップ
+        const langMap = {
+            'ja-JP': '日本語',
+            'en-US': '英語', 
+            'zh-CN': '中国語',
+            'ko-KR': '韓国語',
+            'vi-VN': 'ベトナム語',
+            'it-IT': 'イタリア語'
+        };
+
+        // 音声再生機能
+        function playAudio(text, lang = 'ja-JP') {
+            if ('speechSynthesis' in window) {
+                try {
+                    // 既存の音声を停止
+                    window.speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+                    
+                    utterance.onerror = (event) => {
+                        console.log('音声再生エラー:', event.error);
+                        showAudioFallback(text, lang);
+                    };
+                    
+                    utterance.onstart = () => {
+                        setAudioPlaying(text);
+                    };
+                    
+                    utterance.onend = () => {
+                        setAudioPlaying('');
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                    
+                    // フォールバック
+                    setTimeout(() => {
+                        if (!window.speechSynthesis.speaking) {
+                            showAudioFallback(text, lang);
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    console.log('音声再生エラー:', error);
+                    showAudioFallback(text, lang);
+                }
+            } else {
+                console.log('ブラウザがText-to-Speech APIに対応していません');
+                showAudioFallback(text, lang);
+            }
+        }
+
+        function showAudioFallback(text, lang) {
+            const fallbackEl = document.getElementById('audioFallback');
+            const fallbackTextEl = document.getElementById('fallbackText');
+            
+            fallbackTextEl.textContent = `🔊 "${text}" (${langMap[lang] || lang})`;
+            fallbackEl.classList.remove('hidden');
+            
+            setTimeout(() => {
+                fallbackEl.classList.add('hidden');
+            }, 3000);
+        }
+
+        function setAudioPlaying(text) {
+            const playingEl = document.getElementById('audioPlaying');
+            const playingTextEl = document.getElementById('playingText');
+            const audioButton = document.getElementById('audioButton');
+            
+            if (text) {
+                playingTextEl.textContent = `🔊 再生中`;
+                playingEl.classList.remove('hidden');
+                audioButton.classList.add('playing');
+            } else {
+                playingEl.classList.add('hidden');
+                audioButton.classList.remove('playing');
+            }
+        }
+
+        // 問題音声再生
+        function playQuestionAudio() {
+            const currentQuestion = questions[currentQuestionIndex];
+            playAudio(currentQuestion.questionText, currentQuestion.questionLang);
+        }
+
+        // 選択肢表示
+        function showOptions() {
+            document.getElementById('nextButton').classList.add('hidden');
+            document.getElementById('optionsSection').classList.remove('hidden');
+            
+            const optionsGrid = document.getElementById('optionsGrid');
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            optionsGrid.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.onclick = () => selectOption(index);
+                button.innerHTML = `
+                    <div class="option-label">
+                        <span>${option.label}</span>
+                        <span>▶</span>
+                    </div>
+                    <div class="playing-indicator hidden" id="playing-${index}">🔊 再生中...</div>
+                `;
+                optionsGrid.appendChild(button);
+            });
+        }
+
+        // 選択肢選択
+        function selectOption(index) {
+            if (answered) return;
+            
+            selectedOption = index;
+            const currentQuestion = questions[currentQuestionIndex];
+            const option = currentQuestion.options[index];
+            
+            // すべての選択肢のスタイルをリセット
+            document.querySelectorAll('.option-button').forEach((btn, i) => {
+                btn.classList.remove('selected');
+                if (i === index) {
+                    btn.classList.add('selected');
+                }
+                document.getElementById(`playing-${i}`).classList.add('hidden');
+            });
+            
+            // 音声再生
+            playAudio(option.text, option.lang);
+            document.getElementById(`playing-${index}`).classList.remove('hidden');
+            
+            // 回答ボタンを有効化
+            document.getElementById('answerButton').disabled = false;
+            
+            setTimeout(() => {
+                document.getElementById(`playing-${index}`).classList.add('hidden');
+            }, 2000);
+        }
+
+        // 回答送信
+        function submitAnswer() {
+            if (selectedOption === null) return;
+            
+            answered = true;
+            const currentQuestion = questions[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.correctIndex;
+            
+            if (isCorrect) {
+                score++;
+            }
+            
+            // 選択肢のスタイル更新
+            document.querySelectorAll('.option-button').forEach((btn, index) => {
+                btn.disabled = true;
+                
+                if (index === currentQuestion.correctIndex) {
+                    btn.classList.add('correct');
+                } else if (index === selectedOption && !isCorrect) {
+                    btn.classList.add('incorrect');
+                } else {
+                    btn.classList.add('disabled');
+                }
+            });
+            
+            // 解説表示
+            document.getElementById('explanation').classList.remove('hidden');
+            document.getElementById('explanationText').textContent = currentQuestion.explanation;
+            
+            // ボタン表示切り替え
+            document.getElementById('answerButton').classList.add('hidden');
+            
+            if (currentQuestionIndex < questions.length - 1) {
+                document.getElementById('nextQuestionButton').classList.remove('hidden');
+            } else {
+                document.getElementById('showResultButton').classList.remove('hidden');
+            }
+        }
+
+        // 次の問題
+        function nextQuestion() {
+            currentQuestionIndex++;
+            selectedOption = null;
+            answered = false;
+            
+            updateDisplay();
+            resetUI();
+        }
+
+        // 表示更新
+        function updateDisplay() {
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            document.getElementById('questionNumber').textContent = `第${currentQuestion.questionId}問`;
+            document.getElementById('progressCounter').textContent = `${currentQuestionIndex + 1} / ${questions.length}`;
+            document.getElementById('questionTitle').textContent = `第${currentQuestion.questionId}問`;
+            
+            // 進捗バー更新
+            const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = `${progressPercent}%`;
+            document.getElementById('progressText').textContent = `進捗: ${currentQuestionIndex + 1} / ${questions.length}`;
+        }
+
+        // UI リセット
+        function resetUI() {
+            document.getElementById('nextButton').classList.remove('hidden');
+            document.getElementById('optionsSection').classList.add('hidden');
+            document.getElementById('explanation').classList.add('hidden');
+            document.getElementById('nextQuestionButton').classList.add('hidden');
+            document.getElementById('showResultButton').classList.add('hidden');
+            document.getElementById('answerButton').classList.remove('hidden');
+            document.getElementById('answerButton').disabled = true;
+            document.getElementById('audioFallback').classList.add('hidden');
+            document.getElementById('audioPlaying').classList.add('hidden');
+        }
+
+        // 結果表示
+        function showResult() {
+            document.getElementById('gameContent').classList.add('hidden');
+            document.getElementById('completionScreen').classList.remove('hidden');
+            
+            const scoreEmoji = score === questions.length ? '🏆' : 
+                             score >= questions.length / 2 ? '🥈' : '🥉';
+            
+            document.getElementById('scoreEmoji').textContent = scoreEmoji;
+            document.getElementById('finalScore').textContent = `${score} / ${questions.length}`;
+        }
+
+        // ゲーム再開
+        function restartGame() {
+            currentQuestionIndex = 0;
+            selectedOption = null;
+            answered = false;
+            score = 0;
+            audioPlaying = '';
+            audioFallback = '';
+            
+            document.getElementById('gameContent').classList.remove('hidden');
+            document.getElementById('completionScreen').classList.add('hidden');
+            
+            updateDisplay();
+            resetUI();
+        }
+
+        // 初期化
+        updateDisplay();
+    </script>
+</body>
+</html>

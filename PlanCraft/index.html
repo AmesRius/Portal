@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanCraft — 企画書を、すばやく。</title>
+<script src="templates.js"></script>
+<link rel="stylesheet" href="style.css"></link>
+</head>
+<body>
+<!-- ════════════════════════════════
+     LANDING VIEW
+════════════════════════════════ -->
+<div id="view-landing" class="view active">
+  <nav class="land-nav">
+    <div class="land-logo">Plan<span>Craft</span></div>
+    <button class="land-nav-btn" onclick="showView('templates')">企画書を作る →</button>
+  </nav>
+
+  <div class="land-hero">
+    <div class="land-eyebrow">Free · No Registration · Works Offline</div>
+    <h1 class="land-h1">アイデアを、<br><em>一枚の企画書へ。</em></h1>
+    <p class="land-sub">
+      ビジネス・サービス・マーケティング・採用など、あらゆるシーンに対応した
+      プロ仕様のテンプレートで企画書をすばやく作成。登録不要・即使える。
+    </p>
+    <div class="land-cta">
+      <button class="btn-primary" onclick="showView('templates')">
+        <span>📄</span> テンプレートから始める
+      </button>
+      <button class="btn-secondary" onclick="showView('mydocs')">
+        <span>📁</span> 保存済みを見る
+      </button>
+    </div>
+  </div>
+
+  <div class="land-stats">
+    <div class="stat-item">
+      <div class="stat-num">34</div>
+      <div class="stat-label">テンプレート</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">11</div>
+      <div class="stat-label">カテゴリ</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">無料・登録不要</div>
+    </div>
+  </div>
+
+  <div class="land-features">
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">即座に始められる</div>
+      <div class="feat-desc">テンプレートを選んでクリックするだけ。ゼロからのフォーマット作りは不要です。</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">目的別テンプレート</div>
+      <div class="feat-desc">新規事業・サービス・マーケティング・HR・店舗・社内提案。6カテゴリ16種類。</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">✏️</div>
+      <div class="feat-title">自由に編集</div>
+      <div class="feat-desc">セクションの追加・削除・並び替えが可能。あなたの目的に合わせてカスタマイズ。</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💾</div>
+      <div class="feat-title">ブラウザに自動保存</div>
+      <div class="feat-desc">入力内容はリアルタイムでブラウザに保存。ページを閉じても安心。</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🖨️</div>
+      <div class="feat-title">印刷・PDF出力</div>
+      <div class="feat-desc">きれいにフォーマットされたプレビューから、そのまま印刷またはPDF保存が可能。</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">PC・スマホ対応</div>
+      <div class="feat-desc">どのデバイスからでも快適に使えるレスポンシブデザイン。</div>
+    </div>
+  </div>
+
+  <div class="land-tmpl-section">
+    <p class="section-heading">テンプレート一覧</p>
+    <p class="section-sub">あなたのユースケースに合うテンプレートを選んでスタート</p>
+    <div class="tmpl-grid" id="landing-tmpl-grid"></div>
+    <div style="margin-top:32px;text-align:center;">
+      <button class="btn-primary" onclick="showView('templates')" style="margin:0 auto;">
+        すべてのテンプレートを見る →
+      </button>
+    </div>
+  </div>
+
+  <footer class="land-footer">
+    <div class="land-footer-logo">Plan<span>Craft</span></div>
+    <small>© 2026 PlanCraft — アイデアを、一枚の企画書へ。</small>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════
+     TEMPLATE BROWSER VIEW
+════════════════════════════════ -->
+<div id="view-templates" class="view">
+  <header class="tmpl-header">
+    <div class="tmpl-logo" onclick="showView('landing')">Plan<span>Craft</span></div>
+    <div class="tmpl-search-wrap">
+      <span class="tmpl-search-icon">🔍</span>
+      <input class="tmpl-search" id="tmpl-search-input" type="text" placeholder="テンプレートを検索..." oninput="filterTemplates()">
+    </div>
+    <button class="tmpl-back-btn" onclick="showView('mydocs')">📁 マイ企画書</button>
+  </header>
+  <div class="tmpl-body">
+    <div class="cat-filters" id="cat-filters"></div>
+    <div class="tmpl-grid" id="tmpl-grid-main"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     EDITOR VIEW
+════════════════════════════════ -->
+<div id="view-editor" class="view">
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="ed-sidebar" id="ed-sidebar">
+    <div class="ed-sidebar-header">
+      <div class="ed-sidebar-logo" onclick="goHome()">Plan<span>Craft</span></div>
+      <button class="ed-section-act-btn" onclick="closeSidebar()" title="閉じる">✕</button>
+    </div>
+    <div class="ed-sidebar-body">
+      <div class="ed-doc-info">
+        <input class="ed-doc-title-input" id="ed-doc-title" type="text" placeholder="企画書タイトル" oninput="updateDocTitle(this.value)">
+        <div class="ed-doc-tmpl-badge" id="ed-tmpl-badge">— テンプレート —</div>
+      </div>
+      <div class="ed-section-list-label">セクション</div>
+      <div id="ed-section-nav"></div>
+    </div>
+    <div class="ed-sidebar-footer">
+      <button class="ed-action-btn primary" onclick="goPreview()">👁 プレビュー・出力</button>
+      <button class="ed-action-btn ghost" onclick="saveDocument()">💾 保存</button>
+      <button class="ed-action-btn ghost" onclick="showView('templates')">＋ 新しい企画書</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="ed-main">
+    <div class="ed-topbar">
+      <button class="ed-menu-btn" id="ed-menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="ed-progress-wrap">
+        <div class="ed-progress-label">
+          <span>入力進捗</span>
+          <span id="ed-progress-pct">0%</span>
+        </div>
+        <div class="ed-progress-bar">
+          <div class="ed-progress-fill" id="ed-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="ed-topbar-actions">
+        <button class="ed-topbar-btn outline" onclick="saveDocument()">💾 保存</button>
+        <button class="ed-topbar-btn filled" onclick="goPreview()">👁 プレビュー</button>
+      </div>
+    </div>
+    <div class="ed-content" id="ed-content">
+      <!-- sections injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     PREVIEW VIEW
+════════════════════════════════ -->
+<div id="view-preview" class="view">
+  <aside class="prev-sidebar">
+    <h3>出力・操作</h3>
+    <button class="prev-action primary" onclick="printDoc()">🖨 印刷 / PDF保存</button>
+    <button class="prev-action ghost" onclick="copyMarkdown()">📋 Markdownコピー</button>
+    <button class="prev-action ghost" onclick="backToEditor()">✏️ 編集に戻る</button>
+    <button class="prev-back" onclick="goHome()">← ホームへ</button>
+  </aside>
+  <div class="prev-main" id="prev-main">
+    <!-- rendered doc injected here -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MY DOCS VIEW
+════════════════════════════════ -->
+<div id="view-mydocs" class="view">
+  <header class="mydocs-header">
+    <div class="mydocs-logo" onclick="showView('landing')">Plan<span>Craft</span></div>
+    <button class="btn-primary" style="font-size:13px;padding:8px 18px;" onclick="showView('templates')">＋ 新しい企画書</button>
+  </header>
+  <div class="mydocs-body">
+    <div class="mydocs-title-row">
+      <h2 class="mydocs-heading">マイ企画書</h2>
+      <span id="mydocs-count" style="font-size:13px;color:var(--text3)">0件</span>
+    </div>
+    <div class="docs-grid" id="docs-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL
+════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">確認</h3>
+    <p id="modal-body">よろしいですか？</p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn danger" id="modal-confirm-btn">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

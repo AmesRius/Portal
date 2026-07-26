@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企業研究プロンプトジェネレーター</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .premise {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+            margin-bottom: 20px;
+        }
+
+        .checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .checkbox-item:hover {
+            border-color: #3498db;
+        }
+
+        .checkbox-item.checked {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 12px;
+            margin-top: 2px;
+            transform: scale(1.2);
+        }
+
+        .checkbox-label {
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .notes {
+            background-color: #fff3cd;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .output-section textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background-color: #fafafa;
+        }
+
+        .copy-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: #2980b9;
+        }
+
+        .copy-button:active {
+            background-color: #21618c;
+        }
+
+        @media (max-width: 430px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .checkboxes {
+                grid-template-columns: 1fr;
+            }
+            
+            .checkbox-item {
+                padding: 12px;
+            }
+            
+            .output-section textarea {
+                min-height: 300px;
+                padding: 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>企業研究プロンプトジェネレーター</h1>
+        
+        <div class="section">
+            <h2>1. 企業名入力</h2>
+            <div class="input-group">
+                <label for="companyName">企業名</label>
+                <input type="text" id="companyName" placeholder="企業名を入力してください">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. 前提</h2>
+            <div class="premise" id="premise">
+                以下の企業研究ワークに必要な情報を収集・整理してください。対象企業は【企業名】です。各項目に対し、事実ベースの情報と、公開されていない情報については信頼性の高い推測を加えてください。特に明記がない限り、可能な限り直近の情報を用いてください。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. カテゴリ選択</h2>
+            <div class="checkboxes">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="overview" value="overview">
+                    <label for="overview" class="checkbox-label">企業概要・ビジネスモデル</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="finance" value="finance">
+                    <label for="finance" class="checkbox-label">財務・IR情報</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="industry" value="industry">
+                    <label for="industry" class="checkbox-label">業界・市場動向</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="hr" value="hr">
+                    <label for="hr" class="checkbox-label">人事・働き方</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="csr" value="csr">
+                    <label for="csr" class="checkbox-label">CSR・SDGs</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="evaluation" value="evaluation">
+                    <label for="evaluation" class="checkbox-label">評価・外部評価</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. 備考</h2>
+            <div class="notes">
+                • 回答はできる限り簡潔に、箇条書きベースで。<br>
+                • 信頼性が不明な情報は「推測」と明記。<br>
+                • 公開情報がなければ代替的な仮説を述べてもよい。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5. 現在のプロンプト</h2>
+            <div class="output-section">
+                <textarea readonly id="promptOutput"></textarea>
+                <button class="copy-button" onclick="copyToClipboard()">プロンプトをコピー</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // カテゴリ別の詳細内容
+        const categoryContents = {
+            overview: `• 設立年月日と創業の背景
+• 創業者の理念や経営思想
+• 主な沿革とその理由
+• 現経営陣の構成
+• 経営理念／ビジョン／バリューの概要と行動指針
+• 主要製品・サービスとその市場シェア
+• ビジネスモデル（収益構造）
+• 競合他社との違い
+• 今後の戦略的展開
+• 拠点情報と地域貢献`,
+
+            finance: `• 売上・利益の推移（5年分）
+• 業績変動要因
+• 財務指標（自己資本比率など）
+• 株価と投資家評価
+• 研究開発費・設備投資の推移
+• 財務安定性の分析
+• ESG関連の取り組み`,
+
+            industry: `• 業界の市場規模と成長率
+• 業界を左右する外部要因
+• 主な競合と比較分析
+• 市場における企業の立ち位置
+• サプライチェーンと提携関係`,
+
+            hr: `• 社員データ（人数、年齢、男女比）
+• 採用方針・求める人物像
+• 育成制度とキャリア支援
+• 福利厚生と柔軟な働き方
+• 評価制度・報酬体系
+• 社風と企業文化
+• D&Iの実態`,
+
+            csr: `• 環境配慮施策
+• 社会貢献活動
+• ガバナンス体制
+• SDGsとの関連性`,
+
+            evaluation: `• ニュース・話題性
+• SNSでの発信と反応
+• 口コミ評価（OpenWork等）
+• 受賞歴・外部評価
+• 顧客・取引先からの評判`
+        };
+
+        // HTMLエスケープ関数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // プロンプト更新関数
+        function updatePrompt() {
+            const companyName = escapeHtml(document.getElementById('companyName').value) || '【企業名】';
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            let prompt = `以下の企業研究ワークに必要な情報を収集・整理してください。対象企業は${companyName}です。各項目に対し、事実ベースの情報と、公開されていない情報については信頼性の高い推測を加えてください。特に明記がない限り、可能な限り直近の情報を用いてください。\n\n`;
+
+            // チェックされたカテゴリの内容を追加
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    prompt += categoryContents[checkbox.value] + '\n\n';
+                }
+            });
+
+            // 備考を追加
+            prompt += `• 回答はできる限り簡潔に、箇条書きベースで。
+• 信頼性が不明な情報は「推測」と明記。
+• 公開情報がなければ代替的な仮説を述べてもよい。`;
+
+            document.getElementById('promptOutput').value = prompt;
+        }
+
+        // 前提文の更新
+        function updatePremise() {
+            const companyName = escapeHtml(document.getElementById('companyName').value) || '【企業名】';
+            const premise = `以下の企業研究ワークに必要な情報を収集・整理してください。対象企業は${companyName}です。各項目に対し、事実ベースの情報と、公開されていない情報については信頼性の高い推測を加えてください。特に明記がない限り、可能な限り直近の情報を用いてください。`;
+            document.getElementById('premise').innerHTML = premise;
+        }
+
+        // チェックボックスの見た目更新
+        function updateCheckboxStyles() {
+            const checkboxItems = document.querySelectorAll('.checkbox-item');
+            checkboxItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+            });
+        }
+
+        // クリップボードにコピー
+        function copyToClipboard() {
+            const textarea = document.getElementById('promptOutput');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                const button = document.querySelector('.copy-button');
+                const originalText = button.textContent;
+                button.textContent = 'コピーしました！';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                alert('コピーに失敗しました。手動でコピーしてください。');
+            }
+        }
+
+        // イベントリスナーの設定
+        document.getElementById('companyName').addEventListener('input', function() {
+            updatePremise();
+            updatePrompt();
+        });
+
+        // チェックボックスのイベントリスナー
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateCheckboxStyles();
+                updatePrompt();
+            });
+        });
+
+        // 初期化
+        updatePremise();
+        updatePrompt();
+        updateCheckboxStyles();
+    </script>
+</body>
+</html>
