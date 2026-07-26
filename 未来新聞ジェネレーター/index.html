@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2040年 未来新聞ジェネレーター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        .font-mincho {
+            font-family: 'Noto Serif JP', serif;
+        }
+        .font-hiragino {
+            font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+        }
+
+        /* 印刷設定 */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #newspaper-preview, #newspaper-preview * {
+                visibility: visible;
+            }
+            #newspaper-preview {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                background: white !important;
+                border: none;
+            }
+            /* 背景グラフィックを印刷する設定 */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 pb-10 print:bg-white print:p-0">
+
+    <!-- ヘッダー -->
+    <header class="bg-slate-800 text-white p-4 shadow-md no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="layout-template" class="h-6 w-6"></i>
+                <h1 class="text-xl font-bold">2040年 未来新聞ジェネレーター</h1>
+            </div>
+            <div class="text-sm bg-slate-700 px-3 py-1 rounded-full hidden sm:block">
+                ワークショップ：技術の『失敗記事』を書こう
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-6 mt-4">
+        
+        <!-- 左側：編集エリア -->
+        <div class="w-full lg:w-1/3 bg-white p-6 rounded-lg shadow-lg no-print h-fit overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                    記事の編集
+                </h2>
+                <button onclick="resetData()" class="text-gray-500 hover:text-red-500 transition" title="リセット">
+                    <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- 基本情報 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">新聞名</label>
+                        <input type="text" id="input-newspaperName" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">日付</label>
+                        <input type="text" id="input-date" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- 記事のテーマ（ヒント用） -->
+                <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                    <label class="block text-xs font-bold text-blue-800 mb-1 flex items-center gap-1">
+                        <i data-lucide="info" class="h-3 w-3"></i>
+                        技術テーマ
+                    </label>
+                    <input type="text" id="input-techTheme" placeholder="例：AI自動運転、ゲノム編集食品" class="w-full border border-blue-200 rounded p-2 text-sm mb-2 focus:outline-none focus:border-blue-400">
+                    <p class="text-[10px] text-blue-600 leading-tight">
+                        ヒント：その技術が普及しすぎて困ったことは？法律の抜け穴は？資源は足りている？
+                    </p>
+                </div>
+
+                <!-- 見出し -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">大見出し (インパクト重視)</label>
+                    <input type="text" id="input-headline" class="w-full border border-gray-300 rounded p-2 font-bold focus:ring-2 focus:ring-blue-500 outline-none" placeholder="衝撃的な見出しを入力">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">サブ見出し (詳細)</label>
+                    <input type="text" id="input-subHeadline" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- 記者・場所 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">取材地</label>
+                        <input type="text" id="input-location" class="w-full border border-gray-300 rounded p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">記者名</label>
+                        <input type="text" id="input-reporterName" class="w-full border border-gray-300 rounded p-2 text-sm">
+                    </div>
+                </div>
+
+                <!-- 画像 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">現場写真</label>
+                    <div class="flex items-center gap-2">
+                        <label class="cursor-pointer flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm transition w-full justify-center border border-dashed border-gray-400">
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            画像をアップロード
+                            <input type="file" id="input-image" accept="image/*" class="hidden">
+                        </label>
+                        <button id="btn-delete-image" class="hidden text-red-500 text-xs hover:underline whitespace-nowrap">削除</button>
+                    </div>
+                </div>
+
+                <!-- 本文 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">記事本文</label>
+                    <textarea id="input-body" rows="12" class="w-full border border-gray-300 rounded p-3 text-sm leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ここに記事を書いてください..."></textarea>
+                </div>
+
+                <button onclick="window.print()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition shadow-lg mt-4">
+                    <i data-lucide="printer" class="h-5 w-5"></i>
+                    新聞を印刷する (PDF保存)
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側：プレビューエリア -->
+        <div class="w-full lg:w-2/3 flex justify-center bg-gray-200 p-4 lg:p-8 overflow-hidden rounded-lg">
+            <!-- 新聞紙面コンテナ -->
+            <div id="newspaper-preview" class="bg-[#fcfbf9] text-black shadow-2xl font-mincho w-full max-w-[210mm] min-h-[297mm] p-8 md:p-12 relative"
+                style="background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');">
+                
+                <!-- ヘッダーエリア -->
+                <div class="border-b-4 border-black mb-2 pb-2 flex justify-between items-end">
+                    <div>
+                        <div class="text-xs text-gray-600 font-sans mb-1">
+                            Science Communication Workshop 2040
+                        </div>
+                        <h1 id="preview-newspaperName" class="text-4xl md:text-5xl font-black tracking-widest text-slate-900 font-hiragino">
+                            未来科学新聞
+                        </h1>
+                    </div>
+                    <div class="text-right">
+                        <div id="preview-edition" class="bg-black text-white text-xs px-2 py-1 inline-block mb-1 font-sans">
+                            夕刊
+                        </div>
+                        <div id="preview-date" class="text-sm font-bold border-t border-black pt-1 mt-1">
+                            2040年 11月 27日
+                        </div>
+                    </div>
+                </div>
+
+                <!-- メタ情報バー -->
+                <div class="flex justify-between border-b border-black py-1 mb-6 text-xs font-sans">
+                    <div class="flex gap-4">
+                        <span>発行所：未来科学制作室</span>
+                        <span>天気：酸性雨のち曇り</span>
+                    </div>
+                    <div>
+                        NO. 2040-X
+                    </div>
+                </div>
+
+                <!-- 大見出し -->
+                <div class="mb-6 text-center">
+                    <h2 id="preview-headline" class="text-3xl md:text-5xl font-black leading-tight mb-2 py-2 font-hiragino">
+                        全固体電池、普及率99%へ
+                    </h2>
+                    <div id="wrapper-subHeadline" class="relative inline-block px-8">
+                        <span class="absolute left-0 top-1/2 w-6 h-[1px] bg-black"></span>
+                        <h3 id="preview-subHeadline" class="text-lg md:text-xl font-bold text-gray-800">
+                            しかし、新たな廃棄物問題が深刻化
+                        </h3>
+                        <span class="absolute right-0 top-1/2 w-6 h-[1px] bg-black"></span>
+                    </div>
+                </div>
+
+                <!-- メインレイアウト -->
+                <div class="flex flex-col md:flex-row gap-6">
+                    
+                    <!-- 左カラム：画像とキャプション -->
+                    <div class="md:w-5/12 flex flex-col gap-2">
+                        <div class="border-2 border-gray-800 p-1 bg-white shadow-sm">
+                            <img id="preview-image" src="" alt="Article Visual" class="w-full h-64 object-cover grayscale contrast-125 brightness-90 hidden">
+                            <div id="preview-image-placeholder" class="w-full h-64 bg-gray-200 flex flex-col items-center justify-center text-gray-400 font-sans">
+                                <i data-lucide="upload" class="h-8 w-8 mb-2 opacity-50"></i>
+                                <span class="text-sm">画像エリア</span>
+                            </div>
+                        </div>
+                        <div class="text-xs font-bold leading-tight text-gray-600 font-sans border-l-2 border-gray-400 pl-2">
+                            ▲ <span id="preview-caption-theme">全固体電池</span>がもたらした光景。技術の普及により社会は大きく変化した（<span id="preview-location">東京</span>にて）
+                        </div>
+
+                        <!-- 記者情報ボックス -->
+                        <div class="mt-4 border border-black p-3 bg-white">
+                            <div class="text-xs font-bold bg-black text-white inline-block px-2 py-0.5 mb-2 font-sans">
+                                Reporter Profile
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                                    <span class="text-xs">記者</span>
+                                </div>
+                                <div>
+                                    <div id="preview-reporterName" class="font-bold text-sm">科学 太郎</div>
+                                    <div class="text-[10px] text-gray-500">科学部・技術社会担当</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右カラム：本文 -->
+                    <div class="md:w-7/12">
+                        <div id="preview-body" class="text-justify leading-7 md:leading-8 text-sm md:text-base whitespace-pre-wrap" style="column-count: 2; column-gap: 1.5rem; column-rule: 1px solid #e5e7eb;">
+                            <!-- 本文がここに挿入されます -->
+                        </div>
+                        
+                        <!-- 編集後記的なミニ広告スペース -->
+                        <div class="mt-8 border-t-2 border-double border-gray-300 pt-4" style="break-inside: avoid;">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="w-2 h-2 bg-black rounded-full"></span>
+                                <h4 class="font-bold text-sm">編集手帳：2040年の視点</h4>
+                            </div>
+                            <p class="text-xs text-gray-600 leading-5">
+                                技術は常に「解決策」として登場する。しかし、解決策が新たな「問題」を生むことは歴史が証明している。
+                                プラスチックがかつて「夢の素材」と呼ばれ、後に海洋汚染の主役となったように、
+                                私たちが今日書いた<span id="preview-footer-theme">全固体電池</span>の記事も、未来への重要な警鐘となるかもしれない。
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- フッター -->
+                <div class="absolute bottom-8 left-0 w-full px-12">
+                    <div class="border-t-4 border-black pt-2 flex justify-between items-center text-[10px] text-gray-500 font-sans">
+                        <div>© 2040 Future Science Newspaper Project</div>
+                        <div>Workshop Output Generator v1.0</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lucide Iconsの初期化
+        lucide.createIcons();
+
+        // 初期データ
+        const defaultData = {
+            newspaperName: '未来科学新聞',
+            date: '2040年 11月 27日',
+            edition: '夕刊', // このバージョンでは固定にしていますが、必要なら入力欄を追加可
+            headline: '全固体電池、普及率99%へ',
+            subHeadline: 'しかし、新たな廃棄物問題が深刻化',
+            reporterName: '科学 太郎',
+            location: '東京',
+            techTheme: '全固体電池',
+            body: `【東京】2040年、夢の技術と言われた全固体電池は、ついに国内の全世帯に普及した。ガソリン車は姿を消し、スマートフォンの充電は週に一度で済むようになった。
+
+しかし、その「便利さ」の裏で、想定外の事態が起きている。
+
+使用済み電池に含まれる希少素材の回収コストが暴騰し、不法投棄が相次いでいるのだ。昨日未明、関東近郊の山林で発見された大量の廃棄バッテリーの山は、私たちに「技術の代償」を問いかけている。
+
+かつてリチウムイオン電池で懸念された発火事故は激減したが、今度は「絶対に壊れない」という耐久性がアダとなり、自然分解されないまま環境を圧迫し続けている。
+
+私たちは技術の恩恵だけを受け取り、その「後始末」を未来へ先送りにしていないだろうか。`,
+            image: null
+        };
+
+        // DOM要素の取得
+        const inputs = {
+            newspaperName: document.getElementById('input-newspaperName'),
+            date: document.getElementById('input-date'),
+            headline: document.getElementById('input-headline'),
+            subHeadline: document.getElementById('input-subHeadline'),
+            reporterName: document.getElementById('input-reporterName'),
+            location: document.getElementById('input-location'),
+            techTheme: document.getElementById('input-techTheme'),
+            body: document.getElementById('input-body'),
+            image: document.getElementById('input-image')
+        };
+
+        const previews = {
+            newspaperName: document.getElementById('preview-newspaperName'),
+            date: document.getElementById('preview-date'),
+            headline: document.getElementById('preview-headline'),
+            subHeadline: document.getElementById('preview-subHeadline'),
+            wrapperSubHeadline: document.getElementById('wrapper-subHeadline'),
+            reporterName: document.getElementById('preview-reporterName'),
+            location: document.getElementById('preview-location'),
+            captionTheme: document.getElementById('preview-caption-theme'),
+            footerTheme: document.getElementById('preview-footer-theme'),
+            body: document.getElementById('preview-body'),
+            image: document.getElementById('preview-image'),
+            imagePlaceholder: document.getElementById('preview-image-placeholder'),
+            btnDeleteImage: document.getElementById('btn-delete-image')
+        };
+
+        // データの反映関数
+        function updatePreview() {
+            previews.newspaperName.textContent = inputs.newspaperName.value;
+            previews.date.textContent = inputs.date.value;
+            previews.headline.textContent = inputs.headline.value;
+            
+            // サブ見出しの表示制御
+            if (inputs.subHeadline.value) {
+                previews.subHeadline.textContent = inputs.subHeadline.value;
+                previews.wrapperSubHeadline.style.display = 'inline-block';
+            } else {
+                previews.wrapperSubHeadline.style.display = 'none';
+            }
+
+            previews.reporterName.textContent = inputs.reporterName.value;
+            previews.location.textContent = inputs.location.value;
+            
+            const theme = inputs.techTheme.value || '技術';
+            previews.captionTheme.textContent = theme;
+            previews.footerTheme.textContent = theme;
+
+            // 本文の最初の文字を大きくする処理（簡易的）
+            const bodyText = inputs.body.value;
+            if (bodyText.length > 0) {
+                const firstChar = bodyText.charAt(0);
+                const restText = bodyText.slice(1);
+                previews.body.innerHTML = `<span class="float-left text-4xl font-bold mr-1 mt-[-4px]">${firstChar}</span>${restText}`;
+            } else {
+                previews.body.textContent = '';
+            }
+        }
+
+        // 入力イベントリスナーの設定
+        Object.keys(inputs).forEach(key => {
+            if (key !== 'image') {
+                inputs[key].addEventListener('input', updatePreview);
+            }
+        });
+
+        // 画像アップロード処理
+        inputs.image.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    previews.image.src = reader.result;
+                    previews.image.classList.remove('hidden');
+                    previews.imagePlaceholder.classList.add('hidden');
+                    previews.btnDeleteImage.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 画像削除処理
+        previews.btnDeleteImage.addEventListener('click', function() {
+            inputs.image.value = ''; // inputをクリア
+            previews.image.src = '';
+            previews.image.classList.add('hidden');
+            previews.imagePlaceholder.classList.remove('hidden');
+            previews.btnDeleteImage.classList.add('hidden');
+        });
+
+        // 初期化関数
+        function initialize(data) {
+            inputs.newspaperName.value = data.newspaperName;
+            inputs.date.value = data.date;
+            inputs.headline.value = data.headline;
+            inputs.subHeadline.value = data.subHeadline;
+            inputs.reporterName.value = data.reporterName;
+            inputs.location.value = data.location;
+            inputs.techTheme.value = data.techTheme;
+            inputs.body.value = data.body;
+            
+            // 画像のリセット
+            inputs.image.value = '';
+            previews.image.src = '';
+            previews.image.classList.add('hidden');
+            previews.imagePlaceholder.classList.remove('hidden');
+            previews.btnDeleteImage.classList.add('hidden');
+
+            updatePreview();
+        }
+
+        // リセットボタン処理
+        function resetData() {
+            if (confirm('記事の内容をリセットしてもよろしいですか？')) {
+                initialize({
+                    newspaperName: '未来科学新聞',
+                    date: '2040年 10月 15日',
+                    headline: '見出しを入力してください',
+                    subHeadline: 'ここにはサブ見出しが入ります',
+                    reporterName: '記者名',
+                    location: '場所',
+                    techTheme: '',
+                    body: 'ここに記事の本文を入力してください。\n\n2040年の未来で、普及した技術がどのような「失敗」や「社会問題」を引き起こしたか、想像力を膨らませて書いてみましょう。\n\n・誰が困っていますか？\n・予想外の使い方はされていませんか？\n・環境への影響はどうですか？',
+                    image: null
+                });
+            }
+        }
+
+        // 初回ロード時の実行
+        initialize(defaultData);
+
+    </script>
+</body>
+</html>

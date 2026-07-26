@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX Table Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* * ページ全体の基本スタイル 
+         */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* * 生成されるテーブルの booktabs スタイル
+         */
+        #table-output table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: auto;
+            min-width: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden; /* 角丸を適用するため */
+        }
+        
+        /* \caption (表のタイトル) */
+        #table-output caption {
+            caption-side: top;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2em;
+            padding: 15px;
+            color: #111827; /* Tailwind gray-900 */
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            border-bottom: 1px solid #e5e7eb; /* Tailwind gray-200 */
+        }
+        
+        /* th (ヘッダーセル), td (データセル) の共通スタイル */
+        #table-output th, 
+        #table-output td {
+            padding: 12px 18px;
+            border: none;
+        }
+        
+        /* \toprule (一番上の太線) の代わり */
+        #table-output thead {
+            border-bottom: 2px solid #374151; /* Tailwind gray-700 */
+        }
+
+        #table-output thead th {
+            font-weight: 600;
+            background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+        
+        /* \cmidrule (ヘッダーとボディの間の線) の代わり */
+        #table-output tbody {
+            border-top: 1px solid #6b7280; /* Tailwind gray-500 */
+        }
+        
+        /* 交互の行に色を付ける */
+        #table-output tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+        
+        /* tfoot (合計欄) の上の区切り線 */
+        #table-output tfoot {
+             border-top: 1px solid #d1d5db; /* Tailwind gray-300 */
+             font-weight: 600;
+             background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+        
+        /* \bottomrule (一番下の太線) の代わり */
+        #table-output {
+             /* テーブル全体の外枠線で代用 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        
+        <!-- ヘッダー -->
+        <header class="p-6 bg-gray-800 text-white">
+            <h1 class="text-2xl font-bold">LaTeX (booktabs) 形式 テーブル復元サイト</h1>
+            <p class="mt-2 text-gray-300">
+                下のテキストエリアにLaTeXのテーブルコードを貼り付けて、「表を復元」ボタンを押してください。
+            </p>
+        </header>
+
+        <!-- 入力エリア -->
+        <div class="p-6">
+            <label for="latex-input" class="block text-sm font-medium text-gray-700 mb-2">
+                LaTeX コード入力:
+            </label>
+            <textarea id="latex-input" rows="15" class="w-full p-3 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            >%----- Requires booktabs package -----% 
+\usepackage{booktabs} 
+
+\begin{table}[h] 
+	\centering 
+	\caption{精神的依存状態-何か困ったことがあったら,まず生成AIに頼ろうと思う. の頻度} 
+	\label{tab:精神的依存状態-何か困ったことがあったら,まず生成AIに頼ろうと思う.の頻度} 
+	{ 
+		\begin{tabular}{lrrrr} 
+			\toprule 
+			精神的依存状態-何か困ったことがあったら,まず生成AIに頼ろうと思う. & 頻度 & パーセント & 有効パーセント & 累積パーセント \\ 
+			\cmidrule[0.4pt]{1-5} 
+			$1$ & $18$ & $8.22$ & $9.05$ & $9.05$ \\ 
+			$2$ & $77$ & $35.16$ & $38.69$ & $47.74$ \\ 
+			$3$ & $79$ & $36.07$ & $39.70$ & $87.44$ \\ 
+			$4$ & $25$ & $11.42$ & $12.56$ & $100.00$ \\ 
+			欠損値 & $20$ & $9.13$ & $ $ & $ $ \\ 
+			合計 & $219$ & $100.00$ & $ $ & $ $ \\ 
+			\bottomrule 
+		\end{tabular} 
+	} 
+\end{table}</textarea>
+            
+            <button id="convert-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                表を復元する
+            </button>
+        </div>
+        
+        <!-- 区切り線 -->
+        <hr class="border-gray-200">
+
+        <!-- 出力エリア -->
+        <div class="p-6">
+            <h2 class="text-xl font-semibold mb-4">復元結果</h2>
+            <div id="table-output" class="overflow-x-auto">
+                <!-- ここに生成されたテーブルが表示されます -->
+                <p class="text-gray-500">まだ何も復元されていません。</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        document.getElementById('convert-btn').addEventListener('click', function() {
+            const latex = document.getElementById('latex-input').value;
+            const outputDiv = document.getElementById('table-output');
+            outputDiv.innerHTML = ''; // 以前の結果をクリア
+
+            try {
+                // 1. テーブルを生成
+                const table = createHtmlTable(latex);
+                outputDiv.appendChild(table);
+            } catch (error) {
+                console.error('Error parsing LaTeX:', error);
+                outputDiv.innerHTML = `<p class="text-red-600 font-medium">エラー: テーブルの解析に失敗しました。LaTeXコードの形式を確認してください。</p>`;
+            }
+        });
+
+        function createHtmlTable(latex) {
+            const table = document.createElement('table');
+
+            // 2. caption (キャプション) の抽出
+            const captionMatch = latex.match(/\\caption{(.*?)}/s);
+            if (captionMatch && captionMatch[1]) {
+                const caption = table.createCaption();
+                caption.textContent = captionMatch[1].trim();
+            }
+
+            // 3. label (ラベル) の抽出
+            const labelMatch = latex.match(/\\label{(.*?)}/s);
+            if (labelMatch && labelMatch[1]) {
+                table.id = labelMatch[1].trim();
+            }
+
+            // 4. tabular (表本体) の内容を抽出
+            const tabularMatch = latex.match(/\\begin{tabular}{.*?}(.*?)\\end{tabular}/s);
+            if (!tabularMatch || !tabularMatch[1]) {
+                throw new Error('Could not find \\begin{tabular}...\\end{tabular} block.');
+            }
+            let content = tabularMatch[1];
+            
+            // 5. 列の配置 (l, r, c) を抽出
+            const alignMatch = latex.match(/\\begin{tabular}{(.*?)}/);
+            const aligns = (alignMatch && alignMatch[1]) 
+                ? alignMatch[1].split('').filter(c => 'lrc'.includes(c)) 
+                : [];
+
+            // 6. コメント行と不要なタグを削除
+            content = content.replace(/%.*?$/gm, ''); // コメントを削除
+            content = content.replace(/\\(toprule|bottomrule|cmidrule\[.*?\]{.*?})/g, ''); // booktabsの線を削除
+            content = content.replace(/[\{\}]/g, ''); // { } を削除
+            
+            // 7. 行に分割
+            const rows = content.split(/\\\\/); // "\\" で行を分割
+
+            // 8. thead, tbody, tfoot の作成
+            const thead = table.createTHead();
+            const tbody = table.createTBody();
+            const tfoot = table.createTFoot();
+
+            const footerKeywords = ['合計', '欠損値'];
+            let headerProcessed = false;
+            
+            rows.forEach(rowStr => {
+                const trimmedRow = rowStr.trim();
+                if (!trimmedRow) return; // 空の行はスキップ
+
+                const isFooterRow = footerKeywords.some(keyword => trimmedRow.startsWith(keyword));
+                let targetElement, cellType;
+
+                if (!headerProcessed) {
+                    targetElement = thead;
+                    cellType = 'th';
+                    headerProcessed = true;
+                } else if (isFooterRow) {
+                    targetElement = tfoot;
+                    cellType = 'td';
+                } else {
+                    targetElement = tbody;
+                    cellType = 'td';
+                }
+
+                const tr = targetElement.insertRow();
+                const cells = trimmedRow.split(/&/); // "&" でセルを分割
+
+                cells.forEach((cellStr, index) => {
+                    const cell = (cellType === 'th') 
+                        ? document.createElement('th') 
+                        : tr.insertCell();
+                    
+                    // $ $ を削除してテキストをクリーンアップ
+                    cell.textContent = cellStr.trim().replace(/\$/g, '');
+                    
+                    // CSSスタイルでテキストの配置を設定
+                    const align = aligns[index] || 'l'; // デフォルトは 'l' (left)
+                    if (align === 'r') {
+                        cell.style.textAlign = 'right';
+                    } else if (align === 'c') {
+                        cell.style.textAlign = 'center';
+                    } else {
+                        cell.style.textAlign = 'left';
+                    }
+                    
+                    if(cellType === 'th') {
+                        tr.appendChild(cell);
+                    }
+                });
+            });
+
+            return table;
+        }
+
+    </script>
+</body>
+</html>

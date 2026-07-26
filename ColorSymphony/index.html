@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Symphony v2 - 色彩の交響曲</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Color Thief JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.4.0/color-thief.min.js" xintegrity="sha512-rWwn4GqYJudbBPh2/PqU/weK6y1Z/3L/p1rPAnP+F/oD5HM/sUJtA8kQ98F/uOZuMQRhM+4qOqNq+fDk/gXG3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        /* カスタムフォント設定 */
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif-art { font-family: 'Cormorant Garamond', serif; }
+        
+        /* ドラッグオーバー時のスタイル */
+        .drag-over {
+            border-color: #f59e0b;
+            background-color: #1f2937;
+        }
+
+        /* スピナー */
+        .loader {
+            border: 4px solid #374151;
+            border-top: 4px solid #f59e0b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* シミュレーションボタンのアクティブ状態 */
+        .sim-btn.active {
+            background-color: #f59e0b; /* amber-500 */
+            color: #111827; /* gray-900 */
+            border-color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen antialiased selection:bg-amber-500 selection:text-gray-900">
+
+    <!-- SVGフィルター定義 (色覚シミュレーション用) -->
+    <svg style="display: none;">
+        <defs>
+            <!-- 1型 (Protanopia) - 赤を感じにくい -->
+            <filter id="protanopia">
+                <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0  0.558, 0.442, 0, 0, 0  0, 0.242, 0.758, 0, 0  0, 0, 0, 1, 0"/>
+            </filter>
+            <!-- 2型 (Deuteranopia) - 緑を感じにくい -->
+            <filter id="deuteranopia">
+                <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0  0.7, 0.3, 0, 0, 0  0, 0.3, 0.7, 0, 0  0, 0, 0, 1, 0"/>
+            </filter>
+            <!-- 3型 (Tritanopia) - 青を感じにくい -->
+            <filter id="tritanopia">
+                <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0  0, 0.433, 0.567, 0, 0  0, 0.475, 0.525, 0, 0  0, 0, 0, 1, 0"/>
+            </filter>
+            <!-- 全色盲 (Achromatopsia) -->
+            <filter id="achromatopsia">
+                <feColorMatrix type="matrix" values="0.299, 0.587, 0.114, 0, 0  0.299, 0.587, 0.114, 0, 0  0.299, 0.587, 0.114, 0, 0  0, 0, 0, 1, 0"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <header class="py-8 text-center">
+        <h1 class="font-serif-art text-4xl md:text-5xl font-bold text-amber-500">
+            Color Symphony
+        </h1>
+        <p class="text-gray-400 text-lg tracking-wider">色彩の交響曲 v2</p>
+    </header>
+
+    <main class="container mx-auto px-4 pb-16 max-w-6xl">
+
+        <!-- 1. アップロードエリア -->
+        <section id="upload-section" class="w-full max-w-3xl mx-auto">
+            <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-lg p-12 md:p-20 text-center cursor-pointer transition-all duration-300 hover:border-amber-500 hover:bg-gray-800 group">
+                <div class="transition-transform duration-300 group-hover:scale-110">
+                    <svg class="mx-auto h-16 w-16 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <p class="font-serif-art text-2xl mt-4 text-gray-300">
+                    Drag & Drop to Visualize
+                </p>
+                <p class="mt-2 text-gray-500 text-sm">
+                    クリックまたは画像をドロップ
+                </p>
+                <input type="file" id="file-input" class="hidden" accept="image/png, image/jpeg, image/gif, image/webp">
+                <p id="upload-error" class="text-red-500 mt-4 hidden"></p>
+            </div>
+        </section>
+
+        <!-- 2. ローディング画面 -->
+        <section id="loading-section" class="hidden text-center py-20">
+            <div class="loader mx-auto"></div>
+            <p class="font-serif-art text-2xl mt-6 text-amber-500">Analyzing color composition...</p>
+            <p class="text-gray-400 text-sm">ピクセルデータを解析中...</p>
+        </section>
+
+        <!-- 3. 結果表示エリア -->
+        <section id="result-section" class="hidden fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                
+                <!-- 左カラム: 画像とシミュレーション (7/12) -->
+                <div class="lg:col-span-7 w-full space-y-6">
+                    <div class="flex justify-between items-baseline border-b border-gray-700 pb-2">
+                        <h2 class="font-serif-art text-3xl text-gray-300">The Perspective</h2>
+                    </div>
+
+                    <!-- シミュレーションコントロール -->
+                    <div class="flex flex-wrap gap-2" id="simulation-controls">
+                        <button class="sim-btn active px-4 py-2 text-sm rounded-full border border-gray-600 hover:border-amber-500 transition-colors" data-filter="">Original</button>
+                        <button class="sim-btn px-4 py-2 text-sm rounded-full border border-gray-600 hover:border-amber-500 transition-colors" data-filter="url(#protanopia)">P型 (1型)</button>
+                        <button class="sim-btn px-4 py-2 text-sm rounded-full border border-gray-600 hover:border-amber-500 transition-colors" data-filter="url(#deuteranopia)">D型 (2型)</button>
+                        <button class="sim-btn px-4 py-2 text-sm rounded-full border border-gray-600 hover:border-amber-500 transition-colors" data-filter="url(#tritanopia)">T型 (3型)</button>
+                        <button class="sim-btn px-4 py-2 text-sm rounded-full border border-gray-600 hover:border-amber-500 transition-colors" data-filter="url(#achromatopsia)">Monochrome</button>
+                    </div>
+
+                    <!-- 画像表示エリア -->
+                    <div class="relative bg-black rounded-lg overflow-hidden shadow-2xl border border-gray-800">
+                        <img id="preview-image" src="#" alt="Analyzed Art" class="w-full h-auto object-contain transition-all duration-500 ease-in-out" style="max-height: 70vh;">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm p-3 text-center">
+                            <p id="current-view-label" class="text-amber-500 font-serif-art text-lg">Original View</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 text-right">* シミュレーションは近似値であり、個人の見え方を完全に再現するものではありません。</p>
+                </div>
+
+                <!-- 右カラム: 分析結果 (5/12) -->
+                <div class="lg:col-span-5 w-full space-y-10">
+                    
+                    <!-- 3.1 構成比率 (円グラフ) -->
+                    <div>
+                        <h2 class="font-serif-art text-3xl text-gray-300 border-b border-gray-700 pb-2 mb-6">Color Composition</h2>
+                        
+                        <div class="flex flex-col items-center">
+                            <!-- ドーナツチャート -->
+                            <div class="relative w-64 h-64">
+                                <div id="pie-chart" class="w-full h-full rounded-full shadow-xl" style="background: conic-gradient(gray 0% 100%);"></div>
+                                <!-- 中央の穴（ドーナツ化） -->
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gray-900 rounded-full flex items-center justify-center border border-gray-800 shadow-inner">
+                                    <div class="text-center">
+                                        <span class="block text-gray-500 text-xs uppercase tracking-widest">Total</span>
+                                        <span class="block text-amber-500 font-serif-art text-2xl">100%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 凡例リスト -->
+                            <div id="chart-legend" class="w-full mt-8 space-y-3">
+                                <!-- JSで生成 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.2 パレット -->
+                    <div>
+                        <h2 class="font-serif-art text-3xl text-gray-300 border-b border-gray-700 pb-2 mb-6">Extracted Palette</h2>
+                        <div id="palette-display" class="grid grid-cols-4 gap-4">
+                            <!-- JSで生成 -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- リセットボタン -->
+            <div class="text-center mt-20">
+                <button id="reset-button" class="group relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white bg-transparent border-2 border-amber-600 rounded-full overflow-hidden transition-all duration-300 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    <span class="font-serif-art tracking-wide relative z-10">Analyze Another Piece</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const colorThief = new ColorThief();
+
+            // Elements
+            const uploadSection = document.getElementById('upload-section');
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const uploadError = document.getElementById('upload-error');
+            const loadingSection = document.getElementById('loading-section');
+            const resultSection = document.getElementById('result-section');
+            const previewImage = document.getElementById('preview-image');
+            const paletteDisplay = document.getElementById('palette-display');
+            const resetButton = document.getElementById('reset-button');
+            const pieChart = document.getElementById('pie-chart');
+            const chartLegend = document.getElementById('chart-legend');
+            const simulationControls = document.getElementById('simulation-controls');
+            const currentViewLabel = document.getElementById('current-view-label');
+
+            // --- Event Listeners ---
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleFile(e.target.files[0]);
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+            });
+
+            resetButton.addEventListener('click', resetApp);
+
+            // シミュレーションボタンの制御
+            simulationControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('sim-btn')) {
+                    // ボタンのアクティブ状態切り替え
+                    document.querySelectorAll('.sim-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    // フィルター適用
+                    const filterVal = e.target.getAttribute('data-filter');
+                    previewImage.style.filter = filterVal;
+                    
+                    // ラベル更新
+                    let labelText = "Original View";
+                    if (filterVal.includes('protanopia')) labelText = "Protanopia View (P型 - 赤難)";
+                    else if (filterVal.includes('deuteranopia')) labelText = "Deuteranopia View (D型 - 緑難)";
+                    else if (filterVal.includes('tritanopia')) labelText = "Tritanopia View (T型 - 青難)";
+                    else if (filterVal.includes('achromatopsia')) labelText = "Monochrome View (全色盲)";
+                    
+                    currentViewLabel.textContent = labelText;
+                }
+            });
+
+            // --- Logic ---
+
+            function handleFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    showError('画像ファイルのみ対応しています。');
+                    return;
+                }
+                
+                showError('');
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.filter = ""; // フィルターリセット
+                    
+                    uploadSection.classList.add('hidden');
+                    loadingSection.classList.remove('hidden');
+
+                    previewImage.onload = () => {
+                        // 少し遅延させてローディングを見せる＆レンダリング待ち
+                        setTimeout(() => {
+                            analyzeImage(previewImage);
+                        }, 500);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function analyzeImage(img) {
+                try {
+                    // 1. パレット取得 (8色)
+                    const paletteCount = 8;
+                    const palette = colorThief.getPalette(img, paletteCount);
+                    
+                    // 2. 色の割合計算 (量子化カウント)
+                    const composition = calculateColorComposition(img, palette);
+                    
+                    // 3. UI描画
+                    renderPalette(palette);
+                    renderPieChart(composition);
+                    
+                    loadingSection.classList.add('hidden');
+                    resultSection.classList.remove('hidden');
+                    
+                    // 初期シミュレーションボタン状態
+                    document.querySelectorAll('.sim-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('.sim-btn[data-filter=""]').classList.add('active');
+                    currentViewLabel.textContent = "Original View";
+
+                } catch (error) {
+                    console.error(error);
+                    showError('分析に失敗しました。');
+                    resetApp();
+                }
+            }
+
+            // 画像のピクセルを走査して、パレットの各色に最も近いものをカウントする
+            function calculateColorComposition(img, palette) {
+                // 作業用キャンバス作成 (処理負荷軽減のため小さく描画)
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const width = 100; // 分析解像度
+                const height = Math.floor(width * (img.naturalHeight / img.naturalWidth));
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                ctx.drawImage(img, 0, 0, width, height);
+                const imageData = ctx.getImageData(0, 0, width, height).data;
+                
+                // カウント用配列初期化
+                const counts = new Array(palette.length).fill(0);
+                
+                // ピクセル走査
+                for (let i = 0; i < imageData.length; i += 4) {
+                    const r = imageData[i];
+                    const g = imageData[i + 1];
+                    const b = imageData[i + 2];
+                    const a = imageData[i + 3];
+                    
+                    if (a < 128) continue; // 透明部分はスキップ
+
+                    // 最も近いパレット色を探す
+                    let minDistance = Infinity;
+                    let paletteIndex = 0;
+
+                    for (let j = 0; j < palette.length; j++) {
+                        const pr = palette[j][0];
+                        const pg = palette[j][1];
+                        const pb = palette[j][2];
+                        
+                        // ユークリッド距離の二乗
+                        const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+                        
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            paletteIndex = j;
+                        }
+                    }
+                    counts[paletteIndex]++;
+                }
+
+                // 割合計算
+                const totalPixels = counts.reduce((a, b) => a + b, 0);
+                
+                return palette.map((rgb, index) => {
+                    return {
+                        rgb: rgb,
+                        hex: rgbToHex(rgb[0], rgb[1], rgb[2]),
+                        count: counts[index],
+                        percentage: totalPixels > 0 ? (counts[index] / totalPixels) * 100 : 0
+                    };
+                }).sort((a, b) => b.percentage - a.percentage); // 割合が高い順にソート
+            }
+
+            function renderPalette(palette) {
+                paletteDisplay.innerHTML = "";
+                palette.forEach(rgb => {
+                    const hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+                    const el = document.createElement('div');
+                    el.className = "aspect-square rounded-lg shadow-lg cursor-pointer transform transition hover:scale-105 hover:ring-2 hover:ring-amber-500";
+                    el.style.backgroundColor = hex;
+                    el.title = hex;
+                    el.onclick = () => copyToClipboard(hex);
+                    paletteDisplay.appendChild(el);
+                });
+            }
+
+            function renderPieChart(composition) {
+                // 円グラフ (Conic Gradient) の作成
+                let gradientStr = "";
+                let currentDeg = 0;
+                
+                composition.forEach(item => {
+                    const deg = (item.percentage / 100) * 360;
+                    gradientStr += `${item.hex} ${currentDeg}deg ${currentDeg + deg}deg, `;
+                    currentDeg += deg;
+                });
+                
+                // 最後のカンマ削除
+                gradientStr = gradientStr.slice(0, -2);
+                pieChart.style.backgroundImage = `conic-gradient(${gradientStr})`;
+
+                // 凡例作成 (上位5色 + その他)
+                chartLegend.innerHTML = "";
+                const topColors = composition.slice(0, 5); // 上位5色
+                const otherPercentage = composition.slice(5).reduce((acc, cur) => acc + cur.percentage, 0);
+
+                topColors.forEach(item => {
+                    createLegendItem(item.hex, item.percentage);
+                });
+                
+                if (otherPercentage > 0.5) { // 0.5%以上あれば「その他」を表示
+                    createLegendItem("#374151", otherPercentage, "Others");
+                }
+            }
+
+            function createLegendItem(hex, percentage, label = null) {
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between text-sm";
+                
+                const left = document.createElement('div');
+                left.className = "flex items-center gap-3";
+                
+                const dot = document.createElement('div');
+                dot.className = "w-4 h-4 rounded-full shadow-sm";
+                dot.style.backgroundColor = hex;
+                
+                const hexText = document.createElement('span');
+                hexText.className = "text-gray-300 font-mono";
+                hexText.textContent = label || hex.toUpperCase();
+                
+                left.appendChild(dot);
+                left.appendChild(hexText);
+                
+                const percentText = document.createElement('span');
+                percentText.className = "text-gray-500 font-medium";
+                percentText.textContent = percentage.toFixed(1) + "%";
+                
+                row.appendChild(left);
+                row.appendChild(percentText);
+                
+                chartLegend.appendChild(row);
+            }
+
+            function resetApp() {
+                resultSection.classList.add('hidden');
+                uploadSection.classList.remove('hidden');
+                fileInput.value = "";
+                uploadError.classList.add('hidden');
+                previewImage.src = "#";
+                // シミュレーションリセット
+                previewImage.style.filter = "";
+            }
+
+            function showError(msg) {
+                uploadError.textContent = msg;
+                uploadError.classList.toggle('hidden', !msg);
+            }
+
+            function rgbToHex(r, g, b) {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            }
+
+            function copyToClipboard(text) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => alert(`Copied: ${text}`));
+                } else {
+                    alert(`Color: ${text}`);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

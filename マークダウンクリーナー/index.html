@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マークダウン クリーナー</title>
+    <!-- Tailwind CSS を読み込みます -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter フォントを適用します */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl">
+        
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-blue-300 mb-4">
+            マークダウン クリーナー
+        </h1>
+        <p class="text-center text-gray-400 mb-8">
+            AIが生成したマークダウン記法（`**` や `#` など）を削除し、プレーンテキストに変換します。
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- 入力エリア -->
+            <div>
+                <label for="input-area" class="block text-lg font-semibold mb-2 text-gray-300">入力 (マークダウン)</label>
+                <textarea 
+                    id="input-area"
+                    class="w-full h-64 md:h-80 p-4 rounded-lg bg-gray-900 border-2 border-gray-700 focus:border-blue-500 focus:ring-blue-500 text-gray-200 resize-none transition-colors"
+                    placeholder="ここにマークダウンテキストを貼り付け..."
+                ></textarea>
+            </div>
+
+            <!-- 出力エリア -->
+            <div>
+                <label for="output-area" class="block text-lg font-semibold mb-2 text-gray-300">出力 (プレーンテキスト)</label>
+                <textarea 
+                    id="output-area"
+                    class="w-full h-64 md:h-80 p-4 rounded-lg bg-gray-900 border-2 border-gray-700 text-gray-200 resize-none"
+                    placeholder="ここにクリーンアップされたテキストが表示されます..."
+                    readonly
+                ></textarea>
+            </div>
+
+        </div>
+
+        <!-- コントロールボタン -->
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+            <button 
+                id="convert-btn" 
+                class="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all transform hover:scale-105"
+            >
+                変換する
+            </button>
+            <button 
+                id="copy-btn" 
+                class="w-full sm:w-auto px-8 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all transform hover:scale-105"
+            >
+                出力をコピー
+            </button>
+            <button 
+                id="clear-btn" 
+                class="w-full sm:w-auto px-8 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all transform hover:scale-105"
+            >
+                クリア
+            </button>
+        </div>
+
+        <!-- コピー成功メッセージ -->
+        <div id="copy-success-msg" class="text-center text-green-400 mt-6 font-medium h-6 invisible opacity-0 transition-opacity">
+            テキストをコピーしました！
+        </div>
+
+    </div>
+
+    <script>
+        // DOM要素を取得
+        const inputArea = document.getElementById('input-area');
+        const outputArea = document.getElementById('output-area');
+        const convertBtn = document.getElementById('convert-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const copySuccessMsg = document.getElementById('copy-success-msg');
+
+        let copyTimeout; // コピーメッセージのタイマー
+
+        /**
+         * マークダウンをクリーンアップする関数
+         * @param {string} text - 入力テキスト
+         * @returns {string} - クリーンアップされたテキスト
+         */
+        function cleanupMarkdown(text) {
+            let cleaned = text;
+
+            // 1. 見出し (例: # 見出し, ## 見出し)
+            cleaned = cleaned.replace(/^[ \t]*#{1,6}[ \t]+(.*)$/gm, '$1');
+
+            // 2. 太字 (**text**)
+            cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1');
+
+            // 3. 斜体 (*text* または _text_)
+            cleaned = cleaned.replace(/\*(.*?)\*/g, '$1');
+            cleaned = cleaned.replace(/_(.*?)_/g, '$1');
+
+            // 4. リンク ([text](url)) -> text のみ残す
+            cleaned = cleaned.replace(/\[(.*?)]\((.*?)\)/g, '$1');
+
+            // 5. 画像 ( ![alt](url) ) -> [画像: alt] または空
+            // ここでは画像の説明も不要と判断し、空文字に置き換えます。
+            cleaned = cleaned.replace(/!\[(.*?)]\((.*?)\)/g, '');
+
+            // 6. リスト (* item, - item, 1. item)
+            cleaned = cleaned.replace(/^[ \t]*[\*\-][ \t]+(.*)$/gm, '$1'); // 箇条書き
+            cleaned = cleaned.replace(/^[ \t]*\d+\.[ \t]+(.*)$/gm, '$1'); // 番号付き
+
+            // 7. 引用 (> text)
+            cleaned = cleaned.replace(/^[ \t]*>[ \t]?(.*)$/gm, '$1');
+
+            // 8. インラインコード (`code`)
+            cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+
+            // 9. 水平線 (---, ***, ___)
+            cleaned = cleaned.replace(/^[ \t]*(\* \* \*|-\s*-|-\s*-\s*|___)$/gm, '');
+
+            // 10. 連続する空行を1つにまとめる
+            cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+            // 11. コードブロック (```...```) を削除
+            // 簡易的に、コードブロック全体を削除します。
+            cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+
+            // 最後に全体のトリム
+            return cleaned.trim();
+        }
+
+        // 変換ボタンの処理
+        convertBtn.addEventListener('click', () => {
+            const inputText = inputArea.value;
+            const cleanedText = cleanupMarkdown(inputText);
+            outputArea.value = cleanedText;
+        });
+
+        // コピーボタンの処理
+        copyBtn.addEventListener('click', () => {
+            if (!outputArea.value) return; // 出力が空なら何もしない
+
+            // iframe内でクリップボードにコピーするための安全な方法
+            outputArea.select();
+            outputArea.setSelectionRange(0, 99999); // モバイル端末用
+            
+            try {
+                document.execCommand('copy');
+                
+                // 成功メッセージを表示
+                copySuccessMsg.classList.remove('invisible', 'opacity-0');
+                copySuccessMsg.classList.add('visible', 'opacity-100');
+
+                // 以前のタイマーがあればクリア
+                if (copyTimeout) {
+                    clearTimeout(copyTimeout);
+                }
+                
+                // 2秒後にメッセージを非表示にする
+                copyTimeout = setTimeout(() => {
+                    copySuccessMsg.classList.remove('visible', 'opacity-100');
+                    copySuccessMsg.classList.add('invisible', 'opacity-0');
+                }, 2000);
+
+            } catch (err) {
+                console.error('コピーに失敗しました:', err);
+                copySuccessMsg.textContent = 'コピーに失敗しました';
+                copySuccessMsg.style.color = 'red';
+                // (エラーメッセージの処理は省略)
+            }
+            
+            // 選択を解除
+            window.getSelection().removeAllRanges();
+        });
+
+        // クリアボタンの処理
+        clearBtn.addEventListener('click', () => {
+            inputArea.value = '';
+            outputArea.value = '';
+            
+            // メッセージも隠す
+            copySuccessMsg.classList.remove('visible', 'opacity-100');
+            copySuccessMsg.classList.add('invisible', 'opacity-0');
+            if (copyTimeout) {
+                clearTimeout(copyTimeout);
+            }
+        });
+
+    </script>
+</body>
+</html>

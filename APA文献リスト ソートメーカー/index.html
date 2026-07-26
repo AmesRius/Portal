@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA参考文献ソート (ABC順)</title>
+    <!-- Tailwind CSS CDNをロード -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* カスタムスクロールバー */
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #4f46e5; border-radius: 4px; }
+        textarea::-webkit-scrollbar-track { background: #f3f4f6; }
+
+        /* スタイリッシュなフォント設定 */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        /* 視覚的な階層を強調するためのフォーカススタイル */
+        .input-focus:focus {
+            border-color: #4f46e5 !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4f46e5', // Indigo 600
+                        'accent-red': '#ef4444', // Red 500
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-10 antialiased">
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-2 tracking-tight">
+                APA文献リスト ソートメーカー
+            </h1>
+            <p class="text-gray-500 text-lg">著者名のアルファベット順（ABC順）並び替え専用ツール</p>
+        </header>
+        
+    <!-- 著者情報変換ツールへのリンクを追加 -->
+        <div class="text-center mb-8">
+            <a href="jstage_apa_converter.html" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-green-500 hover:bg-green-600 transition duration-150 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M3 8h18M3 12h18M3 16h18M3 20h18"></path></svg>
+                <span>著者情報をJ-STAGE（RIS形式）からAPA形式に変換する場合はこちら</span>
+            </a>
+        </div>
+        
+        <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl border border-gray-200">
+            
+            <!-- 説明ボックス - 注意点 -->
+            <div class="bg-indigo-50 border-2 border-primary-blue/50 text-indigo-800 p-4 sm:p-5 mb-6 rounded-xl">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="font-bold text-xl">入力が簡単になりました！</p>
+                </div>
+                <ul class="list-disc list-inside text-sm mt-3 ml-2 space-y-1">
+                    <li>日本語文献は行頭に [よみがな] を付けてください。</li>
+                    <li>ひらがな・カタカナでもOKです！自動的にローマ字順（ABC順）に並び替えます。</li>
+                    <li>例: [やまだ]山田... → 内部でYAMADAとして処理されます。</li>
+                    <li>下の「全ての行頭に [ ] を挿入」ボタンを使うと便利です。</li>
+                </ul>
+            </div>
+            
+            <div class="flex flex-col lg:flex-row lg:space-x-8">
+                
+                <!-- 入力エリア -->
+                <div class="flex-1 mb-8 lg:mb-0">
+                    <div class="flex justify-between items-end mb-3">
+                        <label for="input-references" class="block text-xl font-bold text-gray-700">
+                            <span class="text-primary-blue mr-2">1.</span> 参考文献を貼り付け
+                        </label>
+                        <button onclick="insertBrackets()" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded transition duration-200">
+                            全ての行頭に [ ] を挿入
+                        </button>
+                    </div>
+                    <textarea id="input-references" rows="12" class="w-full p-4 border-2 border-gray-300 rounded-xl input-focus focus:border-primary-blue transition duration-200 shadow-md" placeholder="例:&#10;[やまだ]山田 花子. (2022). 研究者の倫理. 学会誌C.&#10;Smith, J. (2018). Advanced Writing. Journal B."></textarea>
+                </div>
+
+                <!-- 操作エリア (実行と出力) -->
+                <div class="flex-1">
+                    <label class="block text-xl font-bold text-gray-700 mb-3">
+                        <span class="text-primary-blue mr-2">2.</span> 並び替え実行
+                    </label>
+                    
+                    <button onclick="sortReferences()" class="w-full py-4 text-xl font-extrabold text-white bg-primary-blue hover:bg-indigo-700 rounded-xl shadow-lg transform transition duration-200 hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-primary-blue/50 mb-6">
+                        アルファベット順に並び替え
+                    </button>
+                    
+                    <!-- 出力エリア -->
+                    <label for="output-references" class="block text-xl font-bold text-gray-700 mb-3">
+                        <span class="text-primary-blue mr-2">3.</span> ソート結果
+                    </label>
+                    <textarea id="output-references" rows="12" readonly class="w-full p-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-800 resize-none shadow-inner"></textarea>
+                </div>
+            </div>
+
+            <!-- アクションボタン (横並び) -->
+            <div class="flex justify-end mt-6"> 
+                <button id="copy-button" onclick="copyToClipboard()" class="py-3 px-8 text-lg font-bold text-primary-blue bg-indigo-100 hover:bg-indigo-200 rounded-full shadow-md transform transition duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50">
+                    結果をコピー
+                </button>
+            </div>
+            
+            <!-- メッセージ表示エリア -->
+            <div id="message-box" class="mt-4 text-center text-sm font-medium h-6"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 入力エリアの各行の先頭に [ ] を挿入します。既に [] で始まる行はスキップします。
+         */
+        function insertBrackets() {
+            const inputEl = document.getElementById('input-references');
+            const text = inputEl.value;
+            const lines = text.split('\n');
+            
+            const newLines = lines.map(line => {
+                const trimmed = line.trim();
+                if (trimmed.length > 0 && !trimmed.startsWith('[')) {
+                    return `[]${line}`; // 行頭の空白は維持せず、[]を行の絶対先頭につけるなら `[]${trimmed}` だが、インデント維持のため元のlineを使うのが安全か検討。ここではシンプルに `[]` + 元の行とする。
+                }
+                return line;
+            });
+            
+            inputEl.value = newLines.join('\n');
+            showMessage('[ ] を挿入しました。カッコの中に読み仮名（ひらがな可）を入力してください。', 'success');
+            inputEl.focus();
+        }
+
+        /**
+         * ひらがな・カタカナをローマ字に変換する簡易関数（ソート用）
+         */
+        function kanaToRomaji(str) {
+            const table = {
+                'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
+                'か':'ka', 'き':'ki', 'く':'ku', 'け':'ke', 'こ':'ko',
+                'さ':'sa', 'し':'shi', 'す':'su', 'せ':'se', 'そ':'so',
+                'た':'ta', 'ち':'chi', 'つ':'tsu', 'て':'te', 'と':'to',
+                'な':'na', 'に':'ni', 'ぬ':'nu', 'ね':'ne', 'の':'no',
+                'は':'ha', 'ひ':'hi', 'ふ':'fu', 'へ':'he', 'ほ':'ho',
+                'ま':'ma', 'み':'mi', 'む':'mu', 'め':'me', 'も':'mo',
+                'や':'ya', 'ゆ':'yu', 'よ':'yo',
+                'ら':'ra', 'り':'ri', 'る':'ru', 'れ':'re', 'ろ':'ro',
+                'わ':'wa', 'を':'wo', 'ん':'n',
+                'が':'ga', 'ぎ':'gi', 'ぐ':'gu', 'げ':'ge', 'ご':'go',
+                'ざ':'za', 'じ':'ji', 'ず':'zu', 'ぜ':'ze', 'ぞ':'zo',
+                'だ':'da', 'ぢ':'ji', 'づ':'zu', 'で':'de', 'ど':'do',
+                'ば':'ba', 'び':'bi', 'ぶ':'bu', 'べ':'be', 'ぼ':'bo',
+                'ぱ':'pa', 'ぴ':'pi', 'ぷ':'pu', 'ぺ':'pe', 'ぽ':'po',
+                'きゃ':'kya', 'きゅ':'kyu', 'きょ':'kyo',
+                'しゃ':'sha', 'しゅ':'shu', 'しょ':'sho',
+                'ちゃ':'cha', 'ちゅ':'chu', 'ちょ':'cho',
+                'にゃ':'nya', 'にゅ':'nyu', 'にょ':'nyo',
+                'ひゃ':'hya', 'ひゅ':'hyu', 'ひょ':'hyo',
+                'みゃ':'mya', 'みゅ':'myu', 'みょ':'myo',
+                'りゃ':'rya', 'りゅ':'ryu', 'りょ':'ryo',
+                'ぎゃ':'gya', 'ぎゅ':'gyu', 'ぎょ':'gyo',
+                'じゃ':'ja', 'じゅ':'ju', 'じょ':'jo',
+                'びゃ':'bya', 'びゅ':'byu', 'びょ':'byo',
+                'ぴゃ':'pya', 'ぴゅ':'pyu', 'ぴょ':'pyo',
+                'ー':'-' 
+            };
+            
+            // カタカナをひらがなに変換
+            str = str.replace(/[\u30a1-\u30f6]/g, function(match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+
+            let res = '';
+            for (let i = 0; i < str.length; i++) {
+                let char = str[i];
+                let next = str[i+1];
+                
+                // 促音「っ」の処理
+                if (char === 'っ' || char === 'ッ') {
+                    if (next) {
+                        // 次の文字のローマ字の最初の子音を重ねる（簡易処理）
+                        // ここでは完全なローマ字変換テーブルが必要になるため、
+                        // 簡易的に「次が母音以外ならその子音を重ねる」とするが、
+                        // マッピングテーブルを使って先読み変換するのが確実
+                        let twoChars = str.substring(i+1, i+3);
+                        let oneChar = str.substring(i+1, i+2);
+                        let roman = table[twoChars] || table[oneChar];
+                        if (roman) {
+                            res += roman.charAt(0);
+                        }
+                        continue;
+                    }
+                }
+
+                // 2文字（拗音）マッチ
+                let twoChars = str.substring(i, i+2);
+                if (table[twoChars]) {
+                    res += table[twoChars];
+                    i++;
+                    continue;
+                }
+                
+                // 1文字マッチ
+                if (table[char]) {
+                    res += table[char];
+                    continue;
+                }
+                
+                // マッチしなければそのまま（英字など）
+                res += char;
+            }
+            return res.toUpperCase();
+        }
+
+        /**
+         * 参考文献リストを取得し、フリガナをキーとしてソートして出力エリアに表示します。
+         */
+        function sortReferences() {
+            const inputEl = document.getElementById('input-references');
+            const outputEl = document.getElementById('output-references');
+            const messageEl = document.getElementById('message-box');
+            
+            // ソート方法は 'en' (アルファベット順) に固定
+            const sortMethod = 'en'; 
+            
+            const rawText = inputEl.value;
+
+            // 1. テキストを行ごとに分割し、空行を削除
+            let references = rawText.split('\n')
+                                    .map(line => line.trim())
+                                    .filter(line => line.length > 0);
+
+            if (references.length === 0) {
+                showMessage('入力エリアに参考文献がありません。', 'error');
+                outputEl.value = '';
+                return;
+            }
+
+            // 2. ソートキーを抽出
+            let processedReferences = references.map(line => {
+                let key = line;
+                let original = line;
+                
+                // 行頭の [フリガナ] パターンを検出する正規表現
+                const match = line.match(/^\[(.+?)\]\s*(.*)$/);
+                
+                if (match) {
+                    // フリガナ(ひらがな/カタカナ/ローマ字)が見つかった場合
+                    const rawReading = match[1];
+                    // 自動変換：ひらがな/カタカナならローマ字に、そうでなければそのまま大文字化
+                    const sortBase = kanaToRomaji(rawReading);
+                    
+                    // keyは [変換後ローマ字] + 残りの文献データ となる
+                    key = sortBase + match[2]; 
+                    // originalはフリガナを削除した部分 (出力として使用)
+                    original = match[2].trim(); 
+                }
+                
+                return {
+                    original: original,
+                    key: key
+                };
+            });
+
+            // 3. 辞書順でソート
+            // 'en' (アルファベット順) でソート
+            processedReferences.sort((a, b) => {
+                return a.key.localeCompare(b.key, sortMethod, { sensitivity: 'base' });
+            });
+
+            // 4. ソートされたリストを結合 (originalフィールドを使用するためフリガナは削除される)
+            const sortedText = processedReferences.map(item => item.original).join('\n');
+
+            // 5. 結果を出力エリアに表示
+            outputEl.value = sortedText;
+            
+            showMessage(`ソートが完了しました。${references.length}件の参考文献がアルファベット順に並び替えられました。`, 'success');
+        }
+
+        /**
+         * ソートされたテキストをクリップボードにコピーします。
+         */
+        function copyToClipboard() {
+            const outputEl = document.getElementById('output-references');
+            const messageEl = document.getElementById('message-box');
+            
+            if (outputEl.value.trim() === '') {
+                showMessage('コピーするソート結果がありません。', 'error');
+                return;
+            }
+
+            // クリップボードAPIを使用
+            navigator.clipboard.writeText(outputEl.value)
+                .then(() => {
+                    showMessage('ソート結果をクリップボードにコピーしました！', 'success');
+                })
+                .catch(err => {
+                    // Fallback for environments where clipboard API is restricted
+                    outputEl.select();
+                    try {
+                        document.execCommand('copy');
+                        showMessage('ソート結果をクリップボードにコピーしました！', 'success');
+                    } catch (e) {
+                        console.error('Copy failed:', e);
+                        showMessage('コピーに失敗しました。手動でコピーしてください。', 'error');
+                    }
+                });
+        }
+        
+        /**
+         * ユーザーメッセージを表示します。
+         */
+        function showMessage(text, type = 'info') {
+            const messageEl = document.getElementById('message-box');
+            messageEl.textContent = text;
+            
+            // クラスをリセット
+            messageEl.className = 'mt-4 text-center text-sm font-medium h-6';
+
+            if (type === 'success') {
+                messageEl.classList.add('text-green-600', 'font-semibold');
+            } else if (type === 'error') {
+                messageEl.classList.add('text-red-600', 'font-semibold');
+            } else {
+                messageEl.classList.add('text-gray-500');
+            }
+
+            // 3秒後にメッセージをクリア
+            setTimeout(() => {
+                if (messageEl.textContent === text) {
+                     messageEl.textContent = '';
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J-STAGE APAコンバーター</title>
+    <!-- Tailwind CSS CDNをロード -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* カスタムスクロールバー */
+        #output-apa-container::-webkit-scrollbar { width: 8px; }
+        #output-apa-container::-webkit-scrollbar-thumb { background-color: #4f46e5; border-radius: 4px; }
+        #output-apa-container::-webkit-scrollbar-track { background: #f3f4f6; }
+
+        /* スタイリッシュなフォント設定 */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        /* 視覚的な階層を強調するためのフォーカススタイル */
+        .input-focus:focus {
+            border-color: #4f46e5 !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4f46e5', // Indigo 600
+                        'accent-red': '#ef4444', // Red 500
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-10 antialiased">
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-2 tracking-tight">
+                J-STAGE RIS → APA形式 変換ツール
+            </h1>
+            <p class="text-gray-500 text-lg">RISファイルを取り込み、APAスタイルに自動変換します。</p>
+        </header>
+
+        <!-- 参考文献ソートツールへのリンクを追加 -->
+        <div class="text-center mb-8">
+            <a href="reference_sorter.html" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-green-500 hover:bg-green-600 transition duration-150 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M3 8h18M3 12h18M3 16h18M3 20h18"></path></svg>
+                <span>APA文献を並び替える場合はこちら</span>
+            </a>
+        </div>
+        <!-- リンク追加終了 -->
+
+        <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl border border-gray-200">
+            
+            <!-- 説明ボックス - 注意点 (RIS形式に特化して更新) -->
+            <div class="bg-indigo-50 border-2 border-primary-blue/50 text-indigo-800 p-4 sm:p-5 mb-6 rounded-xl">
+                <div class="flex items-center mb-3">
+                    <svg class="w-6 h-6 mr-3 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="font-bold text-xl">使い方と注意点</p>
+                </div>
+                
+                <p class="font-semibold text-lg text-primary-blue mb-1">【RIS形式 (ファイル読み込み) の操作】</p>
+                <ul class="list-disc list-inside text-sm ml-2 space-y-1">
+                    <li>J-STAGEからダウンロードした .ris または .txt ファイルを「ファイルを選択」ボタンで選択してください。</li>
+                    <li>複数のファイルを同時に選択可能です。読み込んだ内容は自動的に結合され、下のテキストエリアに表示されます。</li>
+                    <li>テキストエリアの内容は編集可能です。読み込み後にデータの修正を行えます。</li>
+                </ul>
+                
+                <p class="font-semibold text-lg text-accent-red mt-4 mb-1">【共通の注意】</p>
+                <ul class="list-disc list-inside text-sm ml-2 space-y-1">
+                    <li>変換後の太字（巻）やイタリック（誌名）は、HTMLタグで表現されています。コピー時には通常のテキストになりますが、最終的な文献リストでは手動で適用してください。</li>
+                    <li>変換結果は必ずAPA第7版に準拠しているか確認し、必要に応じて修正してください。</li>
+                </ul>
+            </div>
+            
+            <div class="flex flex-col lg:flex-row lg:space-x-8">
+                
+                <!-- 入力エリア (RIS形式に特化) -->
+                <div class="flex-1 mb-8 lg:mb-0">
+                    
+                    <label class="block text-xl font-bold text-gray-700 mb-3">
+                        <span class="text-primary-blue mr-2">1.</span> RISファイルを読み込み
+                    </label>
+
+                    <!-- RIS File Input Area (メイン入力として表示) -->
+                    <div id="ris-input-main-container">
+                        <input type="file" id="ris-file-input" accept=".ris, .txt" multiple class="w-full text-gray-700 mb-4 p-3 border-2 border-gray-300 rounded-xl bg-white shadow-md cursor-pointer" onchange="handleRISFileSelect()">
+                        <textarea id="ris-content-preview" rows="15" class="w-full p-4 border-2 border-gray-300 rounded-xl input-focus focus:border-primary-blue transition duration-200 shadow-md" placeholder="RISファイルの内容がここに表示されます... (読み込み後に編集可能)"></textarea>
+                    </div>
+                </div>
+
+                <!-- 出力エリア -->
+                <div class="flex-1">
+                    <label for="output-apa" class="block text-xl font-bold text-gray-700 mb-3">
+                        <span class="text-primary-blue mr-2">2.</span> APA形式に変換されたリスト
+                    </label>
+                    <div id="output-apa-container" class="space-y-3 h-[43rem] overflow-y-auto w-full p-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-800 shadow-inner">
+                        <!-- ここに変換結果が挿入される -->
+                        <p class="text-gray-400">変換ボタンを押すと、ここに結果が表示されます。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アクションボタン (横並び) -->
+            <div class="flex justify-center mt-6 space-x-4">
+                <button onclick="convertAndDisplay()" class="py-4 px-8 text-xl font-extrabold text-white bg-primary-blue hover:bg-indigo-700 rounded-xl shadow-lg transform transition duration-200 hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-primary-blue/50">
+                    APA形式に変換
+                </button>
+                <button id="copy-button" onclick="copyToClipboard()" class="py-4 px-8 text-xl font-bold text-primary-blue bg-indigo-100 hover:bg-indigo-200 rounded-xl shadow-md transform transition duration-200 hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50">
+                    テキストをコピー
+                </button>
+            </div>
+            
+            <!-- メッセージ表示エリア -->
+            <div id="message-box" class="mt-4 text-center text-sm font-medium h-6"></div>
+        </div>
+    </div>
+
+    <script>
+        
+        // ファイル読み込みの状態を保持するフラグ (RIS専用モードのため未使用だが残しておく)
+        let isFileLoaded = false;
+
+        /**
+         * RISファイルが選択されたときに内容を読み込みます。
+         */
+        function handleRISFileSelect() {
+            const fileInput = document.getElementById('ris-file-input');
+            const previewEl = document.getElementById('ris-content-preview');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                previewEl.placeholder = 'ファイルが選択されていません。';
+                previewEl.value = '';
+                isFileLoaded = false;
+                return;
+            }
+            
+            previewEl.value = `${files.length}件のファイルを読み込み中です...`;
+            isFileLoaded = false;
+
+            const filePromises = Array.from(files).map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
+            });
+            
+            Promise.all(filePromises)
+                .then(contents => {
+                    // 全ファイルのコンテンツを結合し、RISの終端タグ 'ER  -' で区切る
+                    const combinedContent = contents.join('\nER  -\n'); 
+                    previewEl.value = combinedContent;
+                    isFileLoaded = true;
+                    showMessage(`${files.length}件のファイル (${Array.from(files).map(f => f.name).join(', ')}) の読み込みが完了しました。読み込み後に内容を編集できます。`, 'success');
+                })
+                .catch(err => {
+                    previewEl.value = 'ファイルの読み込み中にエラーが発生しました。';
+                    isFileLoaded = false;
+                    showMessage('ファイル読み込みエラー', 'error');
+                });
+        }
+
+
+        /**
+         * J-STAGEのカンマ区切り文字列をAPA形式に変換します。 (この関数はRIS専用モードでは使用されません)
+         */
+        function convertToAPAFromText(jstageString) {
+            // RIS専用モードのため、このロジックは使用しない
+            return "ERROR: テキスト形式の処理はサポートされていません。RIS形式のファイルを使用してください。";
+        }
+
+        /**
+         * RIS形式の文字列をAPA形式に変換します。
+         * @param {string} risString RIS形式の単一文献ブロック
+         * @returns {string} APA形式のHTML文字列（成功時）またはエラーメッセージ
+         */
+        function convertToAPAFromRIS(risString) {
+            // 1. RISタグをキー/値のオブジェクトに変換
+            const lines = risString.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const data = {};
+            const authorList = [];
+            let inRisBlock = false; 
+
+            for (const line of lines) {
+                // 最初にTYタグが見つかったら、そこからRISブロック開始とみなす（ヘッダーをスキップ）
+                if (!inRisBlock && line.startsWith('TY  -')) {
+                    inRisBlock = true;
+                }
+                
+                // TYタグが出現する前の行はすべてスキップ (形式Aのヘッダー対応)
+                if (!inRisBlock) continue; 
+                
+                // タグ形式の行かチェック
+                if (line.length < 5 || line.substring(2, 5) !== '  -') continue;
+                
+                const tag = line.substring(0, 2).trim();
+                const value = line.substring(5).trim();
+
+                if (tag === 'AU') {
+                    // 著者名は配列に格納
+                    authorList.push(value);
+                } else if (tag === 'ER') {
+                    // 終了タグはスキップ
+                    continue;
+                } else if (tag === 'TI' || tag === 'JO' || tag === 'VL' || tag === 'IS' || tag === 'SP' || tag === 'EP' || tag === 'PY' || tag === 'DO' || tag === 'T2') {
+                    // T2 (Secondary Title, JOの代替として使用されることがある) を追加
+                    // 既に値があり、かつ新しい値が空でない場合は、値を連結せず、最初の有効な値を優先する
+                    if (!data[tag] || data[tag] === '') {
+                        data[tag] = value;
+                    }
+                } else {
+                    data[tag] = value;
+                }
+            }
+            
+            // 必須要素のチェック
+            const journalOrT2 = data.JO || data.T2;
+            
+            if (!data.PY || !data.TI || !journalOrT2 || authorList.length === 0) {
+                return "ERROR: RISデータに必要な情報（年(PY), タイトル(TI), 誌名(JO/T2), 著者(AU)）が不足しています。";
+            }
+
+            // 2. APA形式への整形
+            const year = data.PY;
+            const title = data.TI;
+            const journal = journalOrT2; 
+            const volume = data.VL || ''; 
+            const issue = data.IS || ''; 
+            let page = (data.SP && data.EP) ? `${data.SP}-${data.EP}` : (data.SP || data.EP || '');
+            const doi = data.DO || '';
+
+            // 著者名整形
+            let formattedAuthors;
+            let processedAuthors = authorList.map(author => {
+                const parts = author.split(',');
+                if (parts.length > 1) {
+                    return `${parts[0].trim()} ${parts[1].trim()}`;
+                }
+                return author.trim();
+            });
+
+            if (processedAuthors.length > 1) {
+                const lastAuthor = processedAuthors.pop().trim();
+                formattedAuthors = processedAuthors.join(', ') + ', & ' + lastAuthor;
+            } else {
+                formattedAuthors = processedAuthors[0].trim();
+            }
+            
+            // 3. APA形式に結合 (HTMLタグで装飾 - APA7th準拠)
+            let journalAndVolume = '';
+            
+            // 誌名/会議録名 (イタリック)
+            journalAndVolume += `<i class="italic">${journal}</i>`;
+            
+            // 巻 (太字)
+            if (volume) {
+                journalAndVolume += `, <b class="font-bold">${volume}</b>`;
+            }
+
+            // 号 (括弧つき、非太字)
+            if (issue) {
+                journalAndVolume += `(${issue})`;
+            }
+            
+            // ページ情報の組み立て
+            let pagePart = page ? `, ${page.trim()}` : '';
+            
+            // 最終APA形式
+            let apaReference = `${formattedAuthors} (${year}). ${title}. ${journalAndVolume}${pagePart}.`;
+
+            // DOIの追加
+            if (doi) {
+                const fullDoi = doi.startsWith('http') ? doi : `https://doi.org/${doi}`;
+                apaReference += ` <a href="${fullDoi}" target="_blank" class="text-primary-blue hover:underline">${fullDoi}</a>`;
+            }
+
+            return `<div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm break-words">${apaReference}</div>`;
+        }
+
+
+        /**
+         * 入力データからAPA形式に変換し、結果を表示します。
+         */
+        function convertAndDisplay() {
+            // RIS形式に固定
+            const outputContainer = document.getElementById('output-apa-container');
+            const rawText = document.getElementById('ris-content-preview').value;
+            
+            if (!rawText.trim() && document.getElementById('ris-file-input').files.length === 0) {
+                showMessage('RISファイルが読み込まれていないか、内容が空です。', 'error');
+                outputContainer.innerHTML = '<p class="text-gray-400">変換ボタンを押すと、ここに結果が表示されます。</p>';
+                return;
+            }
+
+            // RIS形式は 'ER  -' タグで文献ブロックを分割
+            const references = rawText.split('ER  -').map(block => block.trim()).filter(block => block.length > 0);
+
+            if (references.length === 0) {
+                showMessage('RISデータ内に有効な文献情報がありません。', 'error');
+                outputContainer.innerHTML = '<p class="text-gray-400">変換ボタンを押すと、ここに結果が表示されます。</p>';
+                return;
+            }
+
+            let successfulConversions = 0;
+            const convertedHtml = references.map(ref => {
+                let result;
+                
+                // RIS形式の変換ロジックを呼び出し
+                result = convertToAPAFromRIS(ref);
+
+                if (result.startsWith('ERROR')) {
+                    return `<div class="bg-red-100 p-3 rounded-lg border border-red-300 text-red-800 text-sm break-words"><strong>${result}</strong><br>元のデータ: ${ref.substring(0, 200)}...</div>`;
+                } else {
+                    successfulConversions++;
+                    return result;
+                }
+            }).join('');
+
+            outputContainer.innerHTML = convertedHtml;
+            
+            showMessage(`${references.length}件中${successfulConversions}件の変換が完了しました。必ず結果を確認してください。`, successfulConversions > 0 ? 'success' : 'error');
+        }
+
+        /**
+         * ソートされたテキストをクリップボードにコピーします。
+         */
+        function copyToClipboard() {
+            const outputContainer = document.getElementById('output-apa-container');
+            const messageEl = document.getElementById('message-box');
+            
+            // HTMLコンテンツから純粋なテキストを抽出
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = outputContainer.innerHTML;
+            
+            // エラーメッセージやプレースホルダーを除去
+            let rawText = tempDiv.textContent.trim();
+            if (rawText.includes('ここに結果が表示されます。') || rawText.includes('ERROR')) {
+                rawText = '';
+            }
+
+            if (rawText === '') {
+                showMessage('有効な変換結果がありません。', 'error');
+                return;
+            }
+            
+            // DOIリンクのテキストがURLとして認識されるため、テキストとしてコピーする
+            // 念のため、改行コードをクリーンアップ
+            rawText = rawText.split('\n').filter(line => line.trim().length > 0).join('\n');
+
+            // クリップボードAPIを使用
+            navigator.clipboard.writeText(rawText)
+                .then(() => {
+                    showMessage('APA形式のテキストをクリップボードにコピーしました！', 'success');
+                })
+                .catch(err => {
+                    // Fallback (通常iframe内では失敗する)
+                    console.error('Copy failed:', err);
+                    showMessage('コピーに失敗しました。手動でコピーしてください。', 'error');
+                });
+        }
+        
+        /**
+         * ユーザーメッセージを表示します。
+         */
+        function showMessage(text, type = 'info') {
+            const messageEl = document.getElementById('message-box');
+            messageEl.textContent = text;
+            
+            // クラスをリセット
+            messageEl.className = 'mt-4 text-center text-sm font-medium h-6';
+
+            if (type === 'success') {
+                messageEl.classList.add('text-green-600', 'font-semibold');
+            } else if (type === 'error') {
+                messageEl.classList.add('text-red-600', 'font-semibold');
+            } else {
+                messageEl.classList.add('text-gray-500');
+            }
+
+            // 5秒後にメッセージをクリア
+            setTimeout(() => {
+                if (messageEl.textContent === text) {
+                     messageEl.textContent = '';
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

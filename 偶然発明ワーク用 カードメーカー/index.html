@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>偶然発明ワーク カードメーカー</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
+body {
+font-family: 'Noto Sans JP', sans-serif;
+background-color: #f3f4f6;
+}
+
+/* --- カードのデザイン定数（最終確定版） --- */
+/* 1. 名詞 (青系) */
+.card-type-noun {
+--main-color: #4285F4; /* Google Blue */
+--background-color: #E6F0FF;
+--line-color: #1A509A; /* ダークブルー */
+}
+/* 2. 動詞 (赤系) */
+.card-type-verb {
+--main-color: #EA4335; /* Google Red */
+--background-color: #FFE6E6;
+--line-color: #A00000; /* ダークレッド */
+}
+/* 3. 場所 (緑系) */
+.card-type-location {
+--main-color: #34A853; /* Google Green */
+--background-color: #E6F8E9;
+--line-color: #0F9D58; /* ダークグリーン */
+}
+
+/* カードの共通スタイル */
+.card-preview-area {
+width: 300px; /* プレビュー用の固定幅 */
+height: 200px; /* プレビュー用の固定高さ */
+background-color: var(--background-color);
+border: 1px solid var(--main-color);
+border-radius: 16px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: flex-start; /* 上寄せ */
+padding: 10px;
+text-align: center;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+position: relative;
+overflow: hidden;
+transition: all 0.3s ease;
+}
+
+.card-header {
+font-size: 16px;
+color: var(--main-color);
+letter-spacing: 2px;
+font-weight: 900;
+margin-top: 10px;
+margin-bottom: 5px;
+}
+
+.card-title {
+font-size: 48px;
+font-weight: 900;
+color: #1a1a1a;
+margin: 0;
+flex-grow: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 100%;
+}
+
+/* 二重ラインのスタイル */
+.card-footer-line {
+position: absolute;
+left: 0;
+width: 100%;
+height: 5px;
+background-color: var(--line-color);
+}
+/* 1本目のライン: カード下から5pxに配置 */
+.card-footer-line:nth-child(3) {
+bottom: 5px;
+}
+/* 2本目のライン: 1本目から1px上の位置に配置 (間隔を極小に維持) */
+.card-footer-line:nth-child(4) {
+bottom: 11px;
+height: 5px;
+}
+
+/* 印刷用データ表示エリアのスタイル */
+.printable-data {
+border: 1px dashed #aaa;
+padding: 20px;
+margin-top: 20px;
+background-color: white;
+border-radius: 8px;
+overflow-x: auto;
+}
+</style>
+</head>
+<body class="p-4 sm:p-8">
+
+<div id="app" class="max-w-5xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl">
+<h1 class="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-2">
+偶然発明ワーク カードメーカー
+</h1>
+<p class="text-center text-gray-500 mb-8">
+作成したいカードのタイプと単語を一行に一つずつ入力し、印刷用データを生成してください。
+</p>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- コントロールパネル -->
+<div class="lg:col-span-1 p-4 bg-gray-50 rounded-xl shadow-inner h-fit">
+<h2 class="text-xl font-bold text-gray-700 mb-4">1. カードタイプを選択</h2>
+<div class="flex space-x-2 mb-6">
+<label class="flex items-center cursor-pointer">
+<input type="radio" name="cardType" value="noun" checked class="form-radio text-blue-600 h-5 w-5" onclick="updateCardType('noun')">
+<span class="ml-2 font-medium text-blue-700">名詞</span>
+</label>
+<label class="flex items-center cursor-pointer">
+<input type="radio" name="cardType" value="verb" class="form-radio text-red-600 h-5 w-5" onclick="updateCardType('verb')">
+<span class="ml-2 font-medium text-red-700">動詞</span>
+</label>
+<label class="flex items-center cursor-pointer">
+<input type="radio" name="cardType" value="location" class="form-radio text-green-600 h-5 w-5" onclick="updateCardType('location')">
+<span class="ml-2 font-medium text-green-700">場所</span>
+</label>
+</div>
+
+<h2 class="text-xl font-bold text-gray-700 mb-4">2. 単語を入力 (一行に一つ)</h2>
+<textarea id="cardWordInput" placeholder="例: 海\n金\n人" maxlength="500"
+class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 text-xl shadow-sm transition duration-150 h-32"
+oninput="updateCardPreview()">海
+金
+人</textarea>
+<p class="text-sm text-gray-500 mt-2">（改行して複数の単語を入力してください）</p>
+
+<h2 class="text-xl font-bold text-gray-700 mt-8 mb-4">3. 印刷用データ生成</h2>
+<button id="generatePrintButton"
+class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition duration-300 text-lg shadow-md disabled:opacity-50"
+onclick="generatePrintableData()">
+印刷用HTMLを生成 (全単語)
+</button>
+</div>
+
+<!-- プレビューエリア -->
+<div class="lg:col-span-2 flex flex-col items-center justify-center p-4">
+<h2 class="text-xl font-bold text-gray-700 mb-4">カードプレビュー (先頭の単語)</h2>
+<div id="cardPreviewContainer" class="flex justify-center items-center w-full h-full min-h-[250px] bg-gray-100 rounded-xl p-4 shadow-lg">
+<!-- ここに動的にカードが挿入される -->
+</div>
+</div>
+</div>
+
+<!-- 印刷用データ表示エリア -->
+<div id="printableArea" class="mt-10 hidden">
+<h2 class="text-2xl font-bold text-gray-700 mb-4">印刷用データ (HTML)</h2>
+<div class="printable-data">
+<pre id="printableHtmlOutput" class="text-sm text-gray-800 whitespace-pre-wrap"></pre>
+</div>
+<p class="text-center text-sm text-gray-600 mt-4">
+上記HTMLをコピーし、別のファイルとして保存・開いて印刷するか、右上のファイルアイコンから新しいHTMLファイルを作成してください。
+</p>
+</div>
+</div>
+
+<script>
+// --- 要素の取得 ---
+const cardPreviewContainer = document.getElementById('cardPreviewContainer');
+const cardWordInput = document.getElementById('cardWordInput');
+const printableArea = document.getElementById('printableArea');
+const printableHtmlOutput = document.getElementById('printableHtmlOutput');
+const generatePrintButton = document.getElementById('generatePrintButton');
+
+let currentCardType = 'noun'; // 現在選択中のカードタイプ
+
+// カードタイプとヘッダーテキストのマッピング
+const HEADER_MAP = {
+  'noun': 'NOUN',
+  'verb': 'VERB',
+  'location': 'LOCATION'
+};
+
+// --- 1. プレビュー用 HTML生成 ---
+// プレビューエリアに表示する単一のカードHTMLを生成します
+function getCardHtml(type, word) {
+  const header = HEADER_MAP[type];
+  const displayWord = word || '単語を入力'; // 空の場合のフォールバック
+  
+  return `
+    <div id="cardPreview" class="card-preview-area card-type-${type}">
+      <div class="card-header">${header}</div>
+      <div class="card-title">${displayWord}</div>
+      <div class="card-footer-line"></div>
+      <div class="card-footer-line"></div>
+    </div>
+  `;
+}
+
+// --- 2. プレビューの更新 ---
+// テキストエリア入力時、またはタイプ変更時にプレビューを更新します
+function updateCardPreview() {
+  // プレビューは常に入力された「最初の単語」のみを表示
+  const words = cardWordInput.value.trim().split('\n').map(w => w.trim()).filter(w => w.length > 0);
+  const word = words[0]; // 最初の単語 (存在しない場合は undefined)
+
+  // プレビューエリアのHTMLを更新
+  cardPreviewContainer.innerHTML = getCardHtml(currentCardType, word);
+
+  // プレビューカードに正しいクラスを再適用
+  // (innerHTMLで書き換えると、DOMが再生成されるため)
+  const cardElement = document.getElementById('cardPreview');
+  if (cardElement) {
+    cardElement.className = ''; // 一旦クラスをリセット
+    cardElement.classList.add('card-preview-area', `card-type-${currentCardType}`);
+  }
+
+  // 単語が入力されていない場合は生成ボタンを無効化
+  generatePrintButton.disabled = words.length === 0;
+}
+
+// --- 3. カードタイプの変更 ---
+// ラジオボタンクリック時に呼ばれます
+function updateCardType(type) {
+  currentCardType = type;
+  updateCardPreview(); // プレビューのスタイルを即時反映
+}
+
+// --- 4. 印刷用 HTML生成 (一括) ---
+// (ここが補完部分です)
+function generatePrintableData() {
+  // 1. 入力値の取得と整形
+  const words = cardWordInput.value.trim().split('\n').map(w => w.trim()).filter(w => w.length > 0);
+
+  if (words.length === 0) {
+    alert('単語を一つ以上入力してください。');
+    return;
+  }
+
+  // 2. 選択中のタイプと色設定の取得
+  const type = currentCardType;
+  const header = HEADER_MAP[type];
+
+  let mainColor = '';
+  let backgroundColor = '';
+  let lineColor = '';
+
+  switch (type) {
+    case 'noun':
+      mainColor = '#4285F4';
+      backgroundColor = '#E6F0FF';
+      lineColor = '#1A509A';
+      break;
+    case 'verb':
+      mainColor = '#EA4335';
+      backgroundColor = '#FFE6E6';
+      lineColor = '#A00000';
+      break;
+    case 'location':
+      mainColor = '#34A853';
+      backgroundColor = '#E6F8E9';
+      lineColor = '#0F9D58';
+      break;
+  }
+
+  // 3. カードHTMLのループ生成
+  let cardsHtml = '';
+  const cardsPerPage = 9; // A4横 3x3=9枚
+  
+  // 最初のページを開始
+  cardsHtml += '<div class="page">';
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+
+    // 9枚ごとに新しいページを開始 (i=0 以外)
+    if (i > 0 && i % cardsPerPage === 0) {
+      cardsHtml += '</div><div class="page">'; // 前のページを閉じ、新しいページを開始
+    }
+
+    // 印刷用のカードHTML (インラインスタイルではなく、生成するHTML内の<style>で制御)
+    cardsHtml += `
+      <div class="card">
+        <div class="card-header">${header}</div>
+        <div class="card-title">${word}</div>
+        <div class="card-footer-line"></div>
+        <div class="card-footer-line line-2"></div>
+      </div>
+    `;
+  }
+  
+  // 最後のページを閉じる
+  cardsHtml += '</div>';
+
+  // 4. 印刷用の完全なHTMLドキュメントを生成
+  // (このHTMLは自己完結しており、外部CSSを必要としません)
+  const printableDoc = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>印刷用カード (${type}: ${words.length}枚)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
+    
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0; /* 印刷プレビュー時の背景色 */
+    }
+
+    /* 印刷用ページ設定 (A4横: 297mm x 210mm) */
+    .page {
+      width: 297mm;
+      height: 210mm;
+      padding: 10mm; /* 余白 */
+      box-sizing: border-box;
+      margin: 10px auto;
+      background-color: white;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 10mm; /* カード間の溝 */
+      page-break-after: always; /* 印刷時にページ改行 */
+    }
+    .page:last-child {
+      page-break-after: auto; /* 最後のページは改行しない */
+    }
+
+    /* カードのスタイル (CSS変数の値を直接埋め込み) */
+    .card {
+      width: 100%;
+      height: 100%;
+      background-color: ${backgroundColor};
+      border: 1px solid ${mainColor};
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .card-header {
+      font-size: 14px;
+      color: ${mainColor};
+      letter-spacing: 2px;
+      font-weight: 900;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-size: 36px; /* 印刷用に調整 */
+      font-weight: 900;
+      color: #1a1a1a;
+      margin: 0;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      line-height: 1.2;
+    }
+    .card-footer-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 5px; /* 元のCSSの定義に合わせる */
+      background-color: ${lineColor};
+    }
+    .card-footer-line:not(.line-2) {
+      bottom: 5px; /* 元のCSSの定義 (nth-child(3)) */
+    }
+    .card-footer-line.line-2 {
+      bottom: 11px; /* 元のCSSの定義 (nth-child(4)) */
+    }
+
+    /* 印刷時のみのスタイル */
+    @media print {
+      body {
+        background-color: white;
+      }
+      .page {
+        margin: 0;
+        padding: 10mm;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${cardsHtml}
+</body>
+</html>
+  `;
+
+  // 5. 結果を表示エリアに出力
+  printableHtmlOutput.textContent = printableDoc; // HTMLコードをテキストとして表示
+  printableArea.classList.remove('hidden'); // 表示エリアを表示
+
+  // 生成されたエリアまでスクロール
+  printableArea.scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- 初期化 ---
+// ページ読み込み時に、デフォルトの入力値でプレビューを1回実行
+document.addEventListener('DOMContentLoaded', updateCardPreview);
+
+</script>
