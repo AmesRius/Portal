@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV to JSON & JS Converter</title>
+    <title>CSV & JSON Converter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -37,11 +37,20 @@
     <div class="max-w-6xl mx-auto">
         <!-- ヘッダー -->
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">CSV to JSON / JS Converter</h1>
-            <p class="text-slate-600">探究テーマデータベースなどのJS配列形式にも対応</p>
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">CSV & JSON Converter</h1>
+            <p class="text-slate-600">CSVからJSON/JSへの変換、およびJSONからCSVへの逆変換に対応</p>
+            
+            <!-- モード切り替えタブ -->
+            <div class="flex justify-center mt-4">
+                <div class="bg-slate-200 p-1 rounded-xl flex gap-1">
+                    <button id="mode-csv-to-json" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all">CSV → JSON / JS</button>
+                    <button id="mode-json-to-csv" class="px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-800 transition-all">JSON → CSV</button>
+                </div>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- モード1: CSV → JSON / JS -->
+        <div id="section-csv-to-json" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- 入力セクション -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -109,10 +118,6 @@
 
                 <div class="relative flex-grow">
                     <textarea id="json-output" readonly class="w-full h-full min-h-[350px] p-4 text-xs font-mono bg-slate-900 text-slate-100 border border-slate-700 rounded-xl outline-none resize-none custom-scrollbar" placeholder="変換結果がここに表示されます..."></textarea>
-                    
-                    <div id="status-msg" class="absolute bottom-4 left-4 right-4 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg opacity-0 transition-opacity pointer-events-none text-center shadow-lg">
-                        メッセージ
-                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mt-4">
@@ -132,33 +137,103 @@
             </div>
         </div>
 
-        <!-- 使い方アドバイス -->
-        <section class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                <h3 class="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    推奨ヘッダー (1行目)
-                </h3>
-                <code class="text-[11px] bg-white p-2 rounded border border-blue-200 block text-blue-700">
-                    title,genre,grade,year,course,school
-                </code>
-                <p class="text-xs text-blue-600 mt-2">※ 1行目の名前がそのままJavaScriptのキー（プロパティ名）になります。</p>
+        <!-- モード2: JSON → CSV -->
+        <div id="section-json-to-csv" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- JSON入力セクション -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-800">1. JSON入力 / 貼り付け</h2>
+                    <div class="flex gap-2">
+                        <select id="output-delimiter" class="text-sm border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value=",">カンマ区切り ( , )</option>
+                            <option value="	">タブ区切り ( TSV )</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="json-drop-zone" class="drop-zone border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer mb-4 hover:border-blue-400 bg-slate-50/50">
+                    <input type="file" id="json-file-input" class="hidden" accept=".json,.js,.txt">
+                    <div class="flex flex-col items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-sm text-slate-600">JSONファイルをドロップ または <span class="text-blue-600 font-medium">クリック</span></p>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <textarea id="json-input" class="w-full h-80 p-4 text-sm font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none custom-scrollbar" placeholder='[&#10;  { "title": "高校生のSNS利用...", "genre": "スポーツ・健康" }&#10;] または const THEME_DATABASE = [...]'></textarea>
+                    <button id="json-clear-btn" class="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 transition-colors" title="クリア">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    ヒント
-                </h3>
-                <p class="text-xs text-slate-600">ExcelやGoogleスプレッドシートからデータをコピーして、入力エリアに直接貼り付けるだけで変換が始まります。</p>
+
+            <!-- CSV出力セクション -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-800">2. 変換結果 (CSV)</h2>
+                </div>
+
+                <div class="relative flex-grow mb-4">
+                    <textarea id="csv-output" readonly class="w-full h-full min-h-[350px] p-4 text-xs font-mono bg-slate-900 text-slate-100 border border-slate-700 rounded-xl outline-none resize-none custom-scrollbar" placeholder="変換されたCSVがここに表示されます..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="csv-copy-btn" class="flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        コピー
+                    </button>
+                    <button id="csv-download-btn" class="flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        保存 (.csv)
+                    </button>
+                </div>
             </div>
-        </section>
+        </div>
+
+        <!-- 共通ステータス通知 -->
+        <div id="status-msg" class="fixed bottom-6 right-6 bg-slate-800 text-white text-xs px-4 py-3 rounded-xl opacity-0 transition-opacity pointer-events-none shadow-xl z-50">
+            メッセージ
+        </div>
     </div>
 
     <script>
+        // --- 共通ステータス表示 ---
+        const statusMsg = document.getElementById('status-msg');
+        function showStatus(text) {
+            statusMsg.textContent = text;
+            statusMsg.classList.remove('opacity-0');
+            setTimeout(() => statusMsg.classList.add('opacity-0'), 2000);
+        }
+
+        // --- タブ切り替えロジック ---
+        const tabCsvToJson = document.getElementById('mode-csv-to-json');
+        const tabJsonToCsv = document.getElementById('mode-json-to-csv');
+        const sectionCsvToJson = document.getElementById('section-csv-to-json');
+        const sectionJsonToCsv = document.getElementById('section-json-to-csv');
+
+        tabCsvToJson.addEventListener('click', () => {
+            tabCsvToJson.className = "px-4 py-2 text-xs font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all";
+            tabJsonToCsv.className = "px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-800 transition-all";
+            sectionCsvToJson.classList.remove('hidden');
+            sectionJsonToCsv.classList.add('hidden');
+        });
+
+        tabJsonToCsv.addEventListener('click', () => {
+            tabJsonToCsv.className = "px-4 py-2 text-xs font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all";
+            tabCsvToJson.className = "px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-800 transition-all";
+            sectionJsonToCsv.classList.remove('hidden');
+            sectionCsvToJson.classList.add('hidden');
+        });
+
+        // --- モード1: CSV → JSON / JS の処理 ---
         const csvInput = document.getElementById('csv-input');
         const jsonOutput = document.getElementById('json-output');
         const fileInput = document.getElementById('file-input');
@@ -168,13 +243,6 @@
         const asJsConstCheck = document.getElementById('as-js-const');
         const varNameInput = document.getElementById('var-name');
         const convertNumbersCheck = document.getElementById('convert-numbers');
-        const statusMsg = document.getElementById('status-msg');
-
-        function showStatus(text) {
-            statusMsg.textContent = text;
-            statusMsg.classList.remove('opacity-0');
-            setTimeout(() => statusMsg.classList.add('opacity-0'), 2000);
-        }
 
         function parseCSV(text, delimiter = ',') {
             const result = [];
@@ -213,7 +281,7 @@
             return result;
         }
 
-        function convert() {
+        function convertCsvToJson() {
             const rawText = csvInput.value.trim();
             if (!rawText) {
                 jsonOutput.value = '';
@@ -263,52 +331,36 @@
             }
         }
 
-        // 監視対象のイベント
         [csvInput, delimiterSelect, prettyCheck, asJsConstCheck, varNameInput, convertNumbersCheck].forEach(el => {
-            el.addEventListener('input', convert);
-            el.addEventListener('change', convert);
+            el.addEventListener('input', convertCsvToJson);
+            el.addEventListener('change', convertCsvToJson);
         });
 
-        // ドラッグ&ドロップ
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('active');
-            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+            if (e.dataTransfer.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { csvInput.value = ev.target.result; convertCsvToJson(); showStatus('ファイルを読み込みました'); };
+                reader.readAsText(e.dataTransfer.files[0]);
+            }
         });
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            if (e.target.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { csvInput.value = ev.target.result; convertCsvToJson(); showStatus('ファイルを読み込みました'); };
+                reader.readAsText(e.target.files[0]);
+            }
         });
 
-        function handleFile(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                csvInput.value = e.target.result;
-                convert();
-                showStatus('ファイルを読み込みました');
-            };
-            reader.readAsText(file);
-        }
-
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            csvInput.value = '';
-            convert();
-            showStatus('クリアしました');
-        });
-
-        document.getElementById('copy-btn').addEventListener('click', () => {
-            if (!jsonOutput.value) return;
-            jsonOutput.select();
-            document.execCommand('copy');
-            showStatus('コピーしました');
-        });
-
+        document.getElementById('clear-btn').addEventListener('click', () => { csvInput.value = ''; convertCsvToJson(); showStatus('クリアしました'); });
+        document.getElementById('copy-btn').addEventListener('click', () => { if (!jsonOutput.value) return; navigator.clipboard.writeText(jsonOutput.value); showStatus('コピーしました'); });
         document.getElementById('download-btn').addEventListener('click', () => {
             const text = jsonOutput.value;
             if (!text || text.startsWith('エラー')) return;
-
             const isJs = asJsConstCheck.checked;
             const blob = new Blob([text], { type: isJs ? 'text/javascript' : 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -319,11 +371,122 @@
             URL.revokeObjectURL(url);
             showStatus('保存しました');
         });
-
-        // 変数名の表示制御
         asJsConstCheck.addEventListener('change', () => {
             document.getElementById('var-name-container').style.opacity = asJsConstCheck.checked ? '1' : '0.4';
+        });
+
+
+        // --- モード2: JSON → CSV の処理 ---
+        const jsonInput = document.getElementById('json-input');
+        const csvOutput = document.getElementById('csv-output');
+        const jsonFileInput = document.getElementById('json-file-input');
+        const jsonDropZone = document.getElementById('json-drop-zone');
+        const outputDelimiter = document.getElementById('output-delimiter');
+
+        function convertJsonToCsv() {
+            let rawText = jsonInput.value.trim();
+            if (!rawText) {
+                csvOutput.value = '';
+                return;
+            }
+
+            try {
+                // JSの定数宣言形式 (const XXX = [...] など) にも対応できるようにパース前処理
+                if (rawText.startsWith('const ') || rawText.startsWith('let ') || rawText.startsWith('var ')) {
+                    const equalIndex = rawText.indexOf('=');
+                    if (equalIndex !== -1) {
+                        rawText = rawText.substring(equalIndex + 1).trim();
+                        if (rawText.endsWith(';')) {
+                            rawText = rawText.substring(0, rawText.length - 1).trim();
+                        }
+                    }
+                }
+
+                const data = JSON.parse(rawText);
+                const arrayData = Array.isArray(data) ? data : [data];
+
+                if (arrayData.length === 0) {
+                    csvOutput.value = '';
+                    return;
+                }
+
+                // 全オブジェクトのキーを収集してヘッダーを作成（ネストしていない平坦なデータや最初の要素を基準にする）
+                const headers = Array.from(new Set(arrayData.flatMap(item => Object.keys(item))));
+                const delimiter = outputDelimiter.value;
+
+                const csvRows = [];
+                // ヘッダー行
+                csvRows.push(headers.join(delimiter));
+
+                // データ行
+                arrayData.forEach(item => {
+                    const row = headers.map(header => {
+                        let val = item[header];
+                        if (val === undefined || val === null) {
+                            val = '';
+                        } else if (typeof val === 'object') {
+                            val = JSON.stringify(val);
+                        } else {
+                            val = String(val);
+                        }
+
+                        // カンマやダブルクォーテーション、改行が含まれる場合はエスケープ
+                        if (val.includes('"') || val.includes(delimiter) || val.includes('\n') || val.includes('\r')) {
+                            val = '"' + val.replace(/"/g, '""') + '"';
+                        }
+                        return val;
+                    });
+                    csvRows.push(row.join(delimiter));
+                });
+
+                csvOutput.value = csvRows.join('\r\n');
+            } catch (error) {
+                csvOutput.value = "エラー: JSONの形式が正しくありません (" + error.message + ")";
+            }
+        }
+
+        [jsonInput, outputDelimiter].forEach(el => {
+            el.addEventListener('input', convertJsonToCsv);
+            el.addEventListener('change', convertJsonToCsv);
+        });
+
+        jsonDropZone.addEventListener('click', () => jsonFileInput.click());
+        jsonDropZone.addEventListener('dragover', (e) => { e.preventDefault(); jsonDropZone.classList.add('active'); });
+        jsonDropZone.addEventListener('dragleave', () => jsonDropZone.classList.remove('active'));
+        jsonDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            jsonDropZone.classList.remove('active');
+            if (e.dataTransfer.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { jsonInput.value = ev.target.result; convertJsonToCsv(); showStatus('ファイルを読み込みました'); };
+                reader.readAsText(e.dataTransfer.files[0]);
+            }
+        });
+        jsonFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { jsonInput.value = ev.target.result; convertJsonToCsv(); showStatus('ファイルを読み込みました'); };
+                reader.readAsText(e.target.files[0]);
+            }
+        });
+
+        document.getElementById('json-clear-btn').addEventListener('click', () => { jsonInput.value = ''; convertJsonToCsv(); showStatus('クリアしました'); });
+        document.getElementById('csv-copy-btn').addEventListener('click', () => { if (!csvOutput.value) return; navigator.clipboard.writeText(csvOutput.value); showStatus('コピーしました'); });
+        document.getElementById('csv-download-btn').addEventListener('click', () => {
+            const text = csvOutput.value;
+            if (!text || text.startsWith('エラー')) return;
+            const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted_data.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('CSVファイルを保存しました');
         });
     </script>
 </body>
 </html>
+}
+
+console.log(calculate(5, 10));
