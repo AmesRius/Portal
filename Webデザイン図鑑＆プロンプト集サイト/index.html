@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Design & Prompt Gallery</title>
+    <style>
+        :root {
+            --bg-color: #f4f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --border-color: #e1e4e8;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        /* 3列グリッド */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        /* カードデザイン */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease;
+        }
+        .card:hover { transform: translateY(-4px); }
+
+        /* モックアッププレビュー領域（スクロールバーを抑止） */
+        .preview-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #e9ecef;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden; /* はみ出しをカット */
+        }
+
+        /* 1280×720pxのPC画面として描画し、後からJavaScriptで枠内に縮小フィットさせる */
+        .preview-container iframe {
+            width: 1280px;
+            height: 720px;
+            border: none;
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: top left; /* 左上を基準に自動縮小 */
+        }
+
+        /* テキストエリア */
+        .card-body {
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .design-title { font-size: 1.1rem; margin: 0 0 8px 0; }
+        .design-details { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; flex-grow: 1; }
+
+        /* プロンプトトグル */
+        .prompt-toggle-btn {
+            width: 100%;
+            background: #f6f8fa;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+        .prompt-content {
+            display: none;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .prompt-content.open { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Web Design & Prompt Gallery</h1>
+        <p>JSONから自動生成されるデザイン図鑑</p>
+    </header>
+
+    <div class="grid" id="gallery-grid"></div>
+</div>
+
+<script>
+    async function loadGallery() {
+        try {
+            const response = await fetch('designs.json');
+            const designs = await response.json();
+            const grid = document.getElementById('gallery-grid');
+
+            designs.forEach(design => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // HTML内に「スクロールバー消去」のスタイルを自動注入
+                const sanitizedHTML = injectPreviewStyles(design.preview_html);
+
+                card.innerHTML = `
+                    <div class="preview-container">
+                        <iframe srcdoc="${escapeHTML(sanitizedHTML)}" scrolling="no"></iframe>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="design-title">${escapeHTML(design.title)}</h2>
+                        <div class="design-details">
+                            <strong>カラー構成:</strong> ${escapeHTML(design.details.color)}<br>
+                            <strong>角丸・シェイプ:</strong> ${escapeHTML(design.details.shape)}<br>
+                            <strong>トーン感:</strong> ${escapeHTML(design.details.tone)}<br>
+                            <strong>ジャンル:</strong> ${escapeHTML(design.details.genre)}
+                        </div>
+                        <div class="prompt-section">
+                            <button class="prompt-toggle-btn" onclick="togglePrompt(this)">
+                                プロンプトを見る <span class="icon">▼</span>
+                            </button>
+                            <div class="prompt-content">${escapeHTML(design.prompt)}</div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // カードの幅に合わせてiframeを動的に縮小（スケール合わせ）
+            updateIframeScales();
+            window.addEventListener('resize', updateIframeScales);
+
+        } catch (error) {
+            console.error('JSONデータの読み込みに失敗しました:', error);
+            document.getElementById('gallery-grid').innerHTML = '<p>データを読み込めませんでした。</p>';
+        }
+    }
+
+    // 1280pxで描画されたiframeを、実際のカード幅に合わせて縮小補正する関数
+    function updateIframeScales() {
+        const containers = document.querySelectorAll('.preview-container');
+        containers.forEach(container => {
+            const iframe = container.querySelector('iframe');
+            if (iframe) {
+                const containerWidth = container.clientWidth;
+                const scale = containerWidth / 1280; // 比率計算
+                iframe.style.transform = `scale(${scale})`;
+            }
+        });
+    }
+
+    // スクロールバー無効化スタイルをiframe内に無理やり差し込む処理
+    function injectPreviewStyles(html) {
+        const styleTag = `<style>
+            html, body { 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                width: 100% !important; 
+                height: 100% !important; 
+                overflow: hidden !important; 
+                box-sizing: border-box !important; 
+            }
+        </style>`;
+        
+        if (html.includes('<head>')) {
+            return html.replace('<head>', `<head>${styleTag}`);
+        } else if (html.includes('<html')) {
+            return html.replace(/>/, `>${styleTag}`);
+        } else {
+            return `${styleTag}${html}`;
+        }
+    }
+
+    function togglePrompt(btn) {
+        const content = btn.nextElementSibling;
+        const icon = btn.querySelector('.icon');
+        content.classList.toggle('open');
+        icon.textContent = content.classList.contains('open') ? '▲' : '▼';
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#39;');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadGallery);
+</script>
+</body>
+</html>

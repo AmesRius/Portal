@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>エラーメッセージ匿名化ツール</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; color: #1a202c; }
+    p.desc { font-size: 0.9rem; color: #718096; margin-bottom: 20px; }
+    
+    .config-box {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .config-box label { font-weight: 600; font-size: 0.9rem; }
+    .config-box input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .config-box .sub-note { font-size: 0.8rem; color: #a0aec0; }
+
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .editor-container { grid-template-columns: 1fr; }
+    }
+
+    .pane { display: flex; flex-direction: column; gap: 8px; }
+    .pane label { font-weight: 600; font-size: 0.9rem; }
+    textarea {
+      width: 100%;
+      height: 320px;
+      padding: 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      resize: vertical;
+      background: #fff;
+    }
+    textarea:focus { outline: 2px solid #3182ce; border-color: transparent; }
+    
+    .btn-group { display: flex; gap: 12px; margin-top: 16px; }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary { background: #3182ce; color: #fff; }
+    .btn-primary:hover { background: #2b6cb0; }
+    .btn-secondary { background: #e2e8f0; color: #2d3748; }
+    .btn-secondary:hover { background: #cbd5e0; }
+
+    .toast {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #38a169;
+      font-weight: 600;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>エラーメッセージ匿名化ツール</h1>
+  <p class="desc">ファイルパスに含まれる特定のユーザー名や指定した文字列を「ユーザー名」に置換します。</p>
+
+  <div class="config-box">
+    <label for="username">置換したい文字列（カンマ区切りで複数指定可能）:</label>
+    <input type="text" id="username" placeholder="例: taro, yamada-k, my-secret-project">
+    <span class="sub-note">※指定した名前のほか、OS標準のユーザーパス（/Users/〜, C:\Users\〜）も自動検出して「ユーザー名」に変換されます。</span>
+  </div>
+
+  <div class="editor-container">
+    <div class="pane">
+      <label for="input-text">変換前（エラーメッセージペースト）</label>
+      <textarea id="input-text" placeholder="ここにエラーログを貼り付けてください..."></textarea>
+    </div>
+    <div class="pane">
+      <label for="output-text">変換後（AI質問用）</label>
+      <textarea id="output-text" readonly placeholder="変換後のテキストがここに表示されます..."></textarea>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-primary" onclick="copyResult()">結果をコピー</button>
+    <button class="btn-secondary" onclick="clearAll()">クリア</button>
+  </div>
+  <div class="toast" id="toast">クリップボードにコピーしました！</div>
+
+  <script>
+    const inputText = document.getElementById('input-text');
+    const outputText = document.getElementById('output-text');
+    const usernameInput = document.getElementById('username');
+    const toast = document.getElementById('toast');
+
+    // 正規表現の特殊文字をエスケープする関数
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function sanitize() {
+      let text = inputText.value;
+      const rawUsers = usernameInput.value;
+
+      if (!text) {
+        outputText.value = '';
+        return;
+      }
+
+      // 1. カンマ区切りの文字列を分解して個別に置換処理
+      if (rawUsers) {
+        const targetUsers = rawUsers
+          .split(',')
+          .map(u => u.trim())
+          .filter(u => u.length > 0)
+          // 長い文字列を優先して置換（部分一致による意図しない崩れを防止）
+          .sort((a, b) => b.length - a.length);
+
+        targetUsers.forEach(user => {
+          const escapedUser = escapeRegExp(user);
+          const userRegex = new RegExp(escapedUser, 'gi');
+          text = text.replace(userRegex, 'ユーザー名');
+        });
+      }
+
+      // 2. macOS / Linux パス形式 (/Users/xxx/ や /home/xxx/) の置換
+      text = text.replace(/(\/(?:Users|home)\/)[^\/\s'"]+/gi, '$1ユーザー名');
+
+      // 3. Windows パス形式 (C:\Users\xxx\) の置換
+      text = text.replace(/([a-zA-Z]:\\Users\\)[^\n\\\s'"]+/gi, '$1ユーザー名');
+
+      outputText.value = text;
+    }
+
+    function copyResult() {
+      if (!outputText.value) return;
+      navigator.clipboard.writeText(outputText.value).then(() => {
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      });
+    }
+
+    function clearAll() {
+      inputText.value = '';
+      outputText.value = '';
+    }
+
+    // 入力時に即時変換
+    inputText.addEventListener('input', sanitize);
+    usernameInput.addEventListener('input', sanitize);
+  </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>実験ネコシリーズ | 数学・物理学・心理学の中の猫たち</title>
+<meta name="description" content="シュレディンガーの猫からソーンダイクの問題箱まで。学問の世界で語られてきた「猫」の思考実験・逸話を、やわらかいニューモーフィズムのデザインで紹介します。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <div class="brand-mark neu-flat">🐈‍</div>
+      <div class="brand-text">
+        <div class="ttl">実験ネコシリーズ</div>
+        <div class="sub mono">EXPERIMENTAL CATS LAB</div>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <a href="#archive">記事一覧</a>
+      <a href="#about">このサイトについて</a>
+    </nav>
+    <button class="paw-toggle neu-pressed" aria-label="ダーク/ライト切り替え">
+      <span class="knob">🐾</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <span class="eyebrow neu-pressed"><span class="dot"></span>THOUGHT EXPERIMENTS, FELINE EDITION</span>
+      <h1>猫は、なぜいつも<br>実験室に呼ばれるのか。<span class="accent">🐾</span></h1>
+      <p class="lead">
+        量子力学の重ね合わせ、心理学の試行錯誤学習、物理学の落下運動——
+        猫は都合よく、いろいろな分野のたとえ話に登場してきました。
+        本サイトでは、そんな「猫を使った実験・思考実験」を分野横断で集めています。
+      </p>
+      <div class="hero-actions">
+        <a href="#archive" class="btn primary neu-flat">実験一覧を見る →</a>
+        <a href="#about" class="btn neu-flat">このサイトについて</a>
+      </div>
+    </div>
+    <div class="hero-visual neu-concave">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="core">🐱</div>
+    </div>
+  </section>
+
+  <!-- ARCHIVE -->
+  <section class="section wrap" id="archive">
+    <div class="section-head">
+      <div>
+        <span class="label">ARCHIVE</span>
+        <h2>実験ノート一覧</h2>
+      </div>
+      <p>分野で絞り込んで、気になる猫実験から読んでみてください。</p>
+    </div>
+
+    <div class="filters">
+      <button class="chip neu-pressed" data-filter="all" data-active="true">すべて</button>
+      <button class="chip neu-flat" data-filter="physics">物理学</button>
+      <button class="chip neu-flat" data-filter="math">数学・情報科学</button>
+      <button class="chip neu-flat" data-filter="psychology">心理学</button>
+    </div>
+
+    <div class="grid">
+
+      <a class="card neu-flat" data-field="physics" href="articles/schrodinger.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">📦</div>
+          <span class="card-field mono neu-pressed">PHYSICS</span>
+        </div>
+        <h3>シュレディンガーの猫</h3>
+        <p>箱の中の猫は「生きていて、かつ死んでいる」——量子力学の重ね合わせを説明するために生まれた、最も有名な思考実験。</p>
+        <div class="card-foot">
+          <span>1935年 / E. シュレディンガー</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+      <a class="card neu-flat" data-field="psychology" href="articles/thorndike.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">🧩</div>
+          <span class="card-field mono neu-pressed">PSYCHOLOGY</span>
+        </div>
+        <h3>ソーンダイクの問題箱</h3>
+        <p>お腹を空かせた猫が箱から脱出する時間は、試行を重ねるごとに短くなる。「試行錯誤学習」と効果の法則が生まれた実験。</p>
+        <div class="card-foot">
+          <span>1898年 / E. ソーンダイク</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+      <a class="card neu-flat" data-field="physics" href="articles/falling-cat.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">🌀</div>
+          <span class="card-field mono neu-pressed">PHYSICS</span>
+        </div>
+        <h3>落下するネコの物理学</h3>
+        <p>回転運動量ゼロのまま、なぜ猫は空中で体をひねって足から着地できるのか。剛体力学と「ネコひねり問題」。</p>
+        <div class="card-foot">
+          <span>1894年〜 / E. マレー ほか</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+      <a class="card neu-flat" data-field="math" href="articles/cat-swarm.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">📈</div>
+          <span class="card-field mono neu-pressed">MATH / CS</span>
+        </div>
+        <h3>キャット・スウォーム最適化</h3>
+        <p>「探索するモード」と「追跡するモード」を切り替える猫の行動に着想を得た、群知能による最適化アルゴリズム。</p>
+        <div class="card-foot">
+          <span>2006年 / Chu &amp; Tsai</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+      <a class="card neu-flat" data-field="psychology" href="articles/buridan.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">⚖️</div>
+          <span class="card-field mono neu-pressed">PSYCHOLOGY</span>
+        </div>
+        <h3>ビュリダンの猫</h3>
+        <p>まったく同じ2つのエサの間で、猫はどちらを選ぶのか。合理的選択と意思決定の限界を考えるための寓話。</p>
+        <div class="card-foot">
+          <span>中世哲学の寓話が起源</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+      <a class="card neu-flat" data-field="physics" href="articles/whisker.html">
+        <div class="card-top">
+          <div class="card-icon neu-pressed">📡</div>
+          <span class="card-field mono neu-pressed">PHYSICS / BIO</span>
+        </div>
+        <h3>ヒゲが測る空間認知</h3>
+        <p>ヒゲ1本の振動を高速カメラで解析すると、猫は通り抜けられる隙間の幅をどう見積もっているのかが見えてくる。</p>
+        <div class="card-foot">
+          <span>感覚神経科学の実験</span>
+          <span class="go">読む →</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section wrap" id="about">
+    <div class="neu-concave" style="padding:40px; border-radius: 28px; display:grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items:center;">
+      <div>
+        <span class="label mono" style="color:var(--text-faint); letter-spacing:.18em; font-size:.72rem;">ABOUT THIS SITE</span>
+        <h2 style="margin-top:10px; font-size:1.6rem;">なぜ「猫」なのか</h2>
+        <p style="color:var(--text-sub); margin-top:14px;">
+          猫は人に飼われながらも独立心が強く、観察対象として都合がよく、そして何より絵になる——
+          そんな理由から、数学者・物理学者・心理学者たちは幾度となく思考実験やたとえ話に猫を登場させてきました。
+          実験ネコシリーズは、そうした「猫を主人公にした知の逸話」を1篇ずつ丁寧に読み解くアーカイブです。
+        </p>
+      </div>
+      <div style="display:flex; justify-content:center;">
+        <div class="neu-pressed" style="width:180px; height:180px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:64px;">🔬</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="paw-row">🐾 🐾 🐾 🐾 🐾</div>
+    <div>実験ネコシリーズ — 数学・物理学・心理学における猫の思考実験アーカイブ</div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

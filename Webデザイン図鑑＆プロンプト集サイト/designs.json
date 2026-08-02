@@ -1,0 +1,26 @@
+[
+  {
+    "id": "glassmorphism_01",
+    "title": "パステル・グラスモーフィズム",
+    "preview_html": "<html style='background:linear-gradient(45deg, #ff9a9e, #fecfef); font-family:sans-serif; display:flex; align-items:center; justify-content:center;'><div style='background:rgba(255,255,255,0.25); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.5); padding:30px; border-radius:16px; text-align:center; color:#333; box-shadow:0 8px 32px rgba(0,0,0,0.1);'><h1 style='font-size:20px; margin:0 0 10px;'>Glass UI</h1><p style='font-size:12px; margin:0;'>Transparent & Soft</p></div></html>",
+    "details": {
+      "color": "ベース:ピンクグラデ / カード:半透明白",
+      "shape": "柔らかい丸み (16px)",
+      "tone": "ガラス透過、ソフトシャドウ",
+      "genre": "Modern / Creative"
+    },
+    "prompt": "# 目的\nグラスモーフィズムを用いたクリエイティブなUIを作成してください。\n..."
+},
+{
+  "id": "shibuya_civic_portal_01",
+  "title": "渋谷区公式Webポータル UIデザイン",
+  "preview_html": "<html style='margin:0;padding:0;background-color:#F0F2F5;font-family:sans-serif;'><body style='padding:40px;display:flex;justify-content:center;align-items:center;'><div style='display:grid;grid-template-columns:repeat(3, 1fr);gap:20px;max-width:900px;width:100%;'><div style='background:#ffffff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:center;gap:12px;'><div style='width:48px;height:48px;border:3px solid #0099D8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#0099D8;font-weight:bold;'>🗑️</div><span style='font-size:16px;font-weight:bold;color:#1a1a1a;'>ごみ・資源</span></div><div style='background:#ffffff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:center;gap:12px;'><div style='width:48px;height:48px;border:3px solid #ED6D00;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ED6D00;font-weight:bold;'>🚌</div><span style='font-size:16px;font-weight:bold;color:#1a1a1a;'>地域交通</span></div><div style='background:#ffffff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:center;gap:12px;'><div style='width:48px;height:48px;border:3px solid #2BB673;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#2BB673;font-weight:bold;'>📄</div><span style='font-size:16px;font-weight:bold;color:#1a1a1a;'>住民票・戸籍</span></div></div></body></html>",
+  "details": {
+    "color": "ベース：#F0F2F5 / カード：#FFFFFF / アクセント：マルチカラー",
+    "shape": "大きめの角丸 (16px / rounded-2xl)",
+    "tone": "ライトトーン・ハイコントラスト",
+    "genre": "Civic Universal Minimal (公共向けカードポータル)"
+  },
+  "prompt": "# 目的\n以下の【Webデザインガイドライン】を厳格に適用し、自治体・公共サービス向けカード型ポータルUIコンポーネントを作成してください。\n\n# WEBデザインガイドライン\n- **デザインスタイル**: ユニバーサル・シビック・ミニマリズム（アクセシブルで親しみやすいカード型タイルポータル）\n- **配色ルール**:\n  - Background: Soft Light Grey/Blue `#F0F2F5`\n  - Primary/Surface: Pure White `#FFFFFF` (Card background)\n  - Accent/CTA: Multi-color icon accents (Cyan `#0099D8`, Green `#2BB673`, Orange `#ED6D00`, Pink `#E5007F`)\n  - Text: Dark Slate `#1A1A1A` (High contrast, high legibility)\n- **レイアウト・余白**:\n  - 余白感: カード内パディング `p-6`、グリッドギャップ `gap-4`〜`gap-6`\n  - 角丸 (Border Radius): 柔らかく大きめな丸み (`rounded-2xl` / `16px`〜`20px`)\n  - 影・質感: 控えめで柔らかい浮遊感 (`shadow-sm`〜`shadow-md`)、ホバー時に僅かなY軸移動\n- **タイポグラフィ**:\n  - 見出し/ラベル: ユニバーサルデザイン（UD）ゴシック体、太字 (`font-bold`)、文字間小さめ\n  - 本文: 高感度な可読性、適度な行間\n\n# NGデザイン（避けるべき表現）\n- 複雑で濃いグラデーションやダークモード（信頼感と視認性を重視するため明るいトーンで統一）\n- 鋭利な角張り（0px）や高密度すぎる文字詰め\n- コントラストが低く文字が読みにくい配色"
+}
+]

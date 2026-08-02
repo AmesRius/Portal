@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キャット・スウォーム最適化 | 実験ネコシリーズ</title>
+<meta name="description" content="探索するモードと追跡するモードを切り替える猫の行動に着想を得た群知能アルゴリズム、キャット・スウォーム最適化を解説します。">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" style="cursor:pointer;">
+      <div class="brand-mark neu-flat">🐈‍⬛</div>
+      <div class="brand-text">
+        <div class="ttl">実験ネコシリーズ</div>
+        <div class="sub mono">EXPERIMENTAL CATS LAB</div>
+      </div>
+    </a>
+    <nav class="main-nav">
+      <a href="../index.html#archive">記事一覧</a>
+      <a href="../index.html#about">このサイトについて</a>
+    </nav>
+    <button class="paw-toggle neu-pressed" aria-label="ダーク/ライト切り替え">
+      <span class="knob">🐾</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap article-header">
+    <div class="breadcrumb">
+      <a href="../index.html">TOP</a> <span>/</span> <a href="../index.html#archive">実験一覧</a> <span>/</span> <span>キャット・スウォーム最適化</span>
+    </div>
+    <div class="article-meta">
+      <span class="tag field neu-pressed mono">MATH / CS</span>
+      <span class="tag neu-pressed mono">群知能</span>
+      <span class="tag neu-pressed mono">最適化アルゴリズム</span>
+    </div>
+    <h1>キャット・スウォーム最適化 — 猫の「休む」と「狩る」を計算に変える</h1>
+    <p class="dek">
+      2006年に提案されたキャット・スウォーム最適化（Cat Swarm Optimization, CSO）は、
+      猫が普段は周囲をのんびり観察し、獲物を見つけた瞬間に一気に追跡するという行動の切り替えを、
+      数値最適化のアルゴリズムに落とし込んだ手法です。
+    </p>
+  </div>
+
+  <div class="wrap article-body">
+    <article class="prose">
+
+      <h2><span class="num neu-pressed mono">01</span>着想：猫には2つのモードがある</h2>
+      <p>
+        猫の日常的な行動をよく観察すると、大きく2つの状態に分けられます。
+        1つは、あたりをゆっくり見回しながら過ごす「シーキングモード（探索）」。
+        もう1つは、獲物を見つけた瞬間に一気に加速して追いかける「トレーシングモード（追跡）」です。
+      </p>
+      <p>
+        提案者のChuとTsaiは、この2つのモードを、最適化問題における「解の探索」と「解の追い込み」に見立てました。
+      </p>
+
+      <h2><span class="num neu-pressed mono">02</span>アルゴリズムの仕組み</h2>
+      <p>
+        CSOでは、探索空間の中に多数の「仮想の猫」を配置します。それぞれの猫は一定の確率に従って
+        シーキングモードかトレーシングモードのどちらかを割り当てられます。
+      </p>
+      <p>
+        シーキングモードの猫は、現在地の周辺をランダムに小さく動きながら、より良い解がないかを緩やかに探します。
+        一方トレーシングモードの猫は、それまでに見つかった中で最も良い解（最も獲物に近い猫）に向かって、
+        速度を持って一気に近づいていきます。
+      </p>
+
+      <div class="equation-box neu-concave">
+        <div class="eq">v(t+1) = v(t) + r・c・( x_best − x(t) )</div>
+        <div class="cap">トレーシングモードにおける位置更新のイメージ（r・cは加速に関わる係数）</div>
+      </div>
+
+      <div class="callout reveal neu-concave">
+        <div class="ic">🔎</div>
+        <div class="body">
+          <b>ポイント</b>
+          <p>大部分の猫を探索役に、少数の猫を追跡役に割り当てることで、解空間全体をまんべんなく調べつつ、有望な領域には素早く収束する、というバランスを実現しています。</p>
+        </div>
+      </div>
+
+      <h2><span class="num neu-pressed mono">03</span>粒子群最適化との違い</h2>
+      <p>
+        CSOは、鳥の群れの動きに着想を得た粒子群最適化（PSO）と近い発想を持つ手法ですが、
+        個体ごとに「探索」と「追跡」という質の異なる振る舞いを明示的に切り替える点が特徴です。
+        この切り替えの比率を調整することで、探索と収束のバランスを制御できます。
+      </p>
+
+    </article>
+
+    <aside class="sidebar">
+      <div class="side-card neu-flat">
+        <h4>EXPERIMENT DATA</h4>
+        <div class="fact-row"><span class="k">提案年</span><span class="v">2006年</span></div>
+        <div class="fact-row"><span class="k">提案者</span><span class="v">Chu &amp; Tsai</span></div>
+        <div class="fact-row"><span class="k">分野</span><span class="v">群知能 / 最適化</span></div>
+        <div class="fact-row"><span class="k">モード数</span><span class="v">2種類</span></div>
+      </div>
+
+      <div class="side-card neu-flat">
+        <h4>関連する実験</h4>
+        <a class="related-link" href="falling-cat.html">
+          <span class="ic neu-pressed">🌀</span> 落下するネコの物理学
+        </a>
+        <a class="related-link" href="whisker.html">
+          <span class="ic neu-pressed">📡</span> ヒゲが測る空間認知
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  <div class="wrap next-prev">
+    <a class="np-card neu-flat" href="falling-cat.html">
+      <span class="lbl mono">← PREV</span>
+      <span class="ttl">落下するネコの物理学</span>
+    </a>
+    <a class="np-card neu-flat" href="buridan.html">
+      <span class="lbl mono">NEXT →</span>
+      <span class="ttl">ビュリダンの猫</span>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="paw-row">🐾 🐾 🐾 🐾 🐾</div>
+    <div>実験ネコシリーズ — 数学・物理学・心理学における猫の思考実験アーカイブ</div>
+  </div>
+</footer>
+
+<script src="../script.js"></script>
+</body>
+</html>

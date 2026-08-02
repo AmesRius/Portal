@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>落下するネコの物理学 | 実験ネコシリーズ</title>
+<meta name="description" content="回転運動量ゼロのまま、なぜ猫は空中で体をひねって足から着地できるのか。剛体力学における「ネコひねり問題」を解説します。">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" style="cursor:pointer;">
+      <div class="brand-mark neu-flat">🐈‍⬛</div>
+      <div class="brand-text">
+        <div class="ttl">実験ネコシリーズ</div>
+        <div class="sub mono">EXPERIMENTAL CATS LAB</div>
+      </div>
+    </a>
+    <nav class="main-nav">
+      <a href="../index.html#archive">記事一覧</a>
+      <a href="../index.html#about">このサイトについて</a>
+    </nav>
+    <button class="paw-toggle neu-pressed" aria-label="ダーク/ライト切り替え">
+      <span class="knob">🐾</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap article-header">
+    <div class="breadcrumb">
+      <a href="../index.html">TOP</a> <span>/</span> <a href="../index.html#archive">実験一覧</a> <span>/</span> <span>落下するネコの物理学</span>
+    </div>
+    <div class="article-meta">
+      <span class="tag field neu-pressed mono">PHYSICS</span>
+      <span class="tag neu-pressed mono">剛体力学</span>
+      <span class="tag neu-pressed mono">角運動量</span>
+    </div>
+    <h1>落下するネコの物理学 — 「ネコひねり問題」はなぜ難問だったのか</h1>
+    <p class="dek">
+      背中から落としても、猫はほぼ必ず足から着地します。角運動量ゼロで空中に投げ出されたはずの体が、
+      なぜ途中で向きを変えられるのか。これは19世紀末から物理学者たちを悩ませてきた、れっきとした力学の問題です。
+    </p>
+  </div>
+
+  <div class="wrap article-body">
+    <article class="prose">
+
+      <h2><span class="num neu-pressed mono">01</span>観察：高速度写真が捉えた「ひねり」</h2>
+      <p>
+        1894年、生理学者エティエンヌ=ジュール・マレーは連続写真（クロノフォトグラフィ）を使い、
+        高いところから背中向きに落とされた猫が、着地までのわずかな時間で体をひねり、
+        足から着地する一連の動作を初めて連続コマで記録しました。
+      </p>
+
+      <div class="callout think neu-concave">
+        <div class="ic">💭</div>
+        <div class="body">
+          <b>ここで考えたいこと</b>
+          <p>猫は空中で何かを蹴ったり、壁を押したりしているわけではありません。何もない空中で、体はどうやって回転できるのでしょうか。</p>
+        </div>
+      </div>
+
+      <h2><span class="num neu-pressed mono">02</span>なぜ「問題」なのか：角運動量保存則</h2>
+      <p>
+        高い場所から落ち始めた瞬間、猫の体全体としての角運動量はほぼゼロです。
+        古典力学の角運動量保存則に従えば、外部から力が加わらない限り、
+        その後も角運動量の合計はゼロのまま変わらないはずです。
+      </p>
+      <p>
+        にもかかわらず、猫は空中で体の向きを180度近く変えてしまいます。
+        一見すると「角運動量保存則に反しているのでは」と思えるほどの動きが、実際に観察されていたのです。
+      </p>
+
+      <div class="equation-box neu-concave">
+        <div class="eq">L合計 = L前半身 + L後半身 = 0（一定）</div>
+        <div class="cap">前半身と後半身が逆向きに回転し、全体としての角運動量はゼロに保たれる</div>
+      </div>
+
+      <h2><span class="num neu-pressed mono">03</span>答え：体を「くの字」に折って回転させる</h2>
+      <p>
+        現在の理解では、猫は体を前半身と後半身で別々に回転させることで、この一見矛盾した動きを実現しています。
+        まず体を大きく折り曲げて前半身と後半身の回転軸をずらし、
+        前半身を縮めて回転しやすくしてから先に向きを変え、続いて後半身も同様に向きを変えます。
+      </p>
+      <p>
+        前半身と後半身それぞれの角運動量は打ち消し合うように逆向きになるため、
+        体全体としての角運動量はゼロのまま保たれつつ、見た目の向きだけが変化していく、というわけです。
+        この動きは「立ち直り反射（righting reflex）」と呼ばれ、内耳の平衡感覚によって引き起こされます。
+      </p>
+
+      <blockquote>
+        猫は空中で外部に何も押し返していないにもかかわらず向きを変える——
+        この現象は20世紀初頭、剛体力学の研究者たちの間で真剣な論争の的になりました。
+      </blockquote>
+
+      <div class="callout reveal neu-concave">
+        <div class="ic">🔎</div>
+        <div class="body">
+          <b>宇宙開発への応用</b>
+          <p>この「体の一部を折り曲げて回転させる」原理は、無重力空間で宇宙飛行士や人工衛星が姿勢を変える仕組みの理解にも応用されています。</p>
+        </div>
+      </div>
+
+      <h2><span class="num neu-pressed mono">04</span>着地の限界</h2>
+      <p>
+        ただし、この立ち直り反射がうまく働くには、体を折り曲げて回転するための時間、
+        つまりある程度の落下距離が必要です。あまりに低い場所からの落下では、
+        体勢を立て直す前に着地してしまうため、必ずしも安全というわけではありません。
+      </p>
+
+    </article>
+
+    <aside class="sidebar">
+      <div class="side-card neu-flat">
+        <h4>EXPERIMENT DATA</h4>
+        <div class="fact-row"><span class="k">最初の記録</span><span class="v">1894年</span></div>
+        <div class="fact-row"><span class="k">記録者</span><span class="v">E. マレー</span></div>
+        <div class="fact-row"><span class="k">分野</span><span class="v">剛体力学</span></div>
+        <div class="fact-row"><span class="k">鍵となる現象</span><span class="v">立ち直り反射</span></div>
+        <div class="fact-row"><span class="k">角運動量</span><span class="v">終始ゼロ</span></div>
+      </div>
+
+      <div class="side-card neu-flat">
+        <h4>関連する実験</h4>
+        <a class="related-link" href="whisker.html">
+          <span class="ic neu-pressed">📡</span> ヒゲが測る空間認知
+        </a>
+        <a class="related-link" href="cat-swarm.html">
+          <span class="ic neu-pressed">📈</span> キャット・スウォーム最適化
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  <div class="wrap next-prev">
+    <a class="np-card neu-flat" href="thorndike.html">
+      <span class="lbl mono">← PREV</span>
+      <span class="ttl">ソーンダイクの問題箱</span>
+    </a>
+    <a class="np-card neu-flat" href="cat-swarm.html">
+      <span class="lbl mono">NEXT →</span>
+      <span class="ttl">キャット・スウォーム最適化</span>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="paw-row">🐾 🐾 🐾 🐾 🐾</div>
+    <div>実験ネコシリーズ — 数学・物理学・心理学における猫の思考実験アーカイブ</div>
+  </div>
+</footer>
+
+<script src="../script.js"></script>
+</body>
+</html>
