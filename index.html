@@ -564,7 +564,7 @@ const CATEGORIES = [
 ];
 
 const TOOLS = [
-  {id:"csv2json", cat:"dev", name:"CSVtoJSONコンバーター", desc:"モックデータ・DB作成用のCSV→JSON変換ツール。", tags:["変換","DB","開発補助"], url:"CSVtoJSONコンバーター/index.html"},
+  {id:"csv2json", cat:"dev", name:"CSVtoJSONコンバーター", desc:"モックデータ・DB作成用のCSV⇔JSON変換ツール。", tags:["変換","DB","開発補助"], url:"CSV&JSONコンバーター/index.html"},
   {id:"uiedit", cat:"dev", name:"UI調整エディタ", desc:"GUI上でのプロトタイプデザイン微調整＆CSS抽出。", tags:["UI","デザイン","開発補助"], url:"UI調整エディタ/index.html"},
   {id:"livepreview", cat:"dev", name:"livepreview", desc:"複数形式のリアルタイムブラウザプレビュー・編集。", tags:["プレビュー","開発補助"], url:"livepreview/index.html"},
   {id:"portal-local", cat:"dev", name:"Portal-local", desc:"ローカルのプロトタイプ／過去制作物をダッシュボード化。", tags:["管理","ダッシュボード"], url:"Portal-local/index.html"},
@@ -573,6 +573,8 @@ const TOOLS = [
   {id:"datareplace", cat:"dev", name:"データ置換ツール", desc:"アンケート等のデータクレンジング・コーディング支援。", tags:["データ処理","研究補助"], url:"データ置換ツール/index.html"},
   {id:"mdcleaner", cat:"dev", name:"マークダウンクリーナー", desc:"AI生成テキストなどの記法を削ぎ落としプレーンテキスト化。", tags:["テキスト処理","AI"], url:"マークダウンクリーナー/index.html"},
   {id:"aichatarchive", cat:"dev", name:"AI応答記録サイト（AIChatArchive）", desc:"ChatGPT/Gemini等の対話記録・整理。", tags:["AI","記録","アーカイブ"], url:"AI応答記録サイト（AIChatArchive）/index.html"},
+　{id:"error-anonymizer", cat:"dev", name:"エラーメッセージ匿名化ツール", desc:"エラーログに含まれる機密情報や指定した文字列を「ユーザー名」に一括置換するブラウザツール。[cite: 1]", tags:["匿名化","置換","開発補助"], url:"エラーメッセージ匿名化ツール/index.html"},
+  {id:"md-file-tree", cat:"dev", name:"Markdown File Tree Generator", desc:"インデントテキストやGitHubリポジトリURLからMarkdown形式のツリー構造を即座に自動生成するツール。[cite: 2]", tags:["Markdown","ツリー生成","ドキュメント"], url:"Markdown File Tree Generator/index.html"},
 
   {id:"tanQ-db", cat:"edu", name:"探究支援サイト＆探究テーマDB", desc:"1万件のテーマ検索で探究学習をサポート。", tags:["DB","探究"], url:"探究支援サイト＆探究テーマDB/index.html"},
   {id:"icebreak", cat:"edu", name:"アイスブレイクアイデア集", desc:"目的別ワークショップネタの検索システム。", tags:["ワークショップ","ファシリテーション"], url:"アイスブレイクアイデア集/index.html"},
@@ -583,17 +585,20 @@ const TOOLS = [
   {id:"future-newspaper", cat:"edu", name:"未来新聞ジェネレーター", desc:"2040年の科学技術失敗記事を書くワーク用ツール。", tags:["ワークショップ","創作"], url:"未来新聞ジェネレーター/index.html"},
   {id:"kougakusha-quiz", cat:"edu", name:"興学社4択クイズ", desc:"社訓を学ぶ動的クイズアプリケーション。", tags:["クイズ","研修"], url:"興学社4択クイズ/index.html"},
   {id:"kids-lang-quiz", cat:"edu", name:"小学生向け外国語クイズ", desc:"Duolingo風の語学学習クイズ。", tags:["クイズ","語学"], url:"小学生向け外国語クイズ/index.html"},
+  {id:"fake-news-immunity", cat:"edu", name:"デマ耐性診断", desc:"SNS風のタイムラインを用いて、デマに対する拡散リスクや慎重さを6つのタイプで診断するツール。[cite: 6]", tags:["リテラシー","探究学習","診断"], url:"デマ耐性診断/index.html"},
 
   {id:"scale-gen", cat:"research", name:"尺度ジェネレーター", desc:"心理尺度の設定からGASフォーム生成・採点データ出力。", tags:["心理尺度","自動生成"], url:"尺度ジェネレーター/index.html"},
   {id:"apa-sort", cat:"research", name:"APA文献リスト ソートメーカー", desc:"文献情報の並び替え・整列。", tags:["執筆","文献"], url:"APA文献リスト ソートメーカー/index.html"},
   {id:"jstage-apa", cat:"research", name:"J-STAGE→APA方式コンバーター", desc:"J-STAGEメタデータをAPAフォーマットへ変換。", tags:["変換","文献"], url:"J-STAGE→APA方式コンバーター/index.html"},
   {id:"latextable", cat:"research", name:"LaTeXTableConverter", desc:"JASP出力結果などの表データをコピペ用フォーマットへ変換。", tags:["変換","統計"], url:"LaTeXTableConverter/index.html"},
   {id:"charcount", cat:"research", name:"文字数カウントVer1", desc:"文字種分析・原稿用紙換算・整形対応のテキストエディタ。", tags:["執筆","ライティング","開発補助"], url:"文字数カウントVer1/index.html"},
+  {id:"experimental-cats", cat:"research", name:"実験ネコシリーズ", desc:"数学・物理学・心理学の世界で語られてきた「猫」の思考実験・逸話を横断的にまとめたアーカイブ。[cite: 4]", tags:["思考実験","科学","読み物"], url:"実験ネコシリーズ/index.html"},
 
   {id:"spi-calc", cat:"career", name:"SPI計算機", desc:"SPI非言語分野の解法・学習用スマホ最適化計算機。", tags:["就活","計算"], url:"SPI/index.html"},
   {id:"company-prompt", cat:"career", name:"企業研究プロンプトジェネレーター", desc:"AIを活用した企業分析用プロンプトの自動作成。", tags:["就活","AI","業界研究"], url:"企業研究プロンプトジェネレーター/index.html"},
   {id:"plancraft", cat:"career", name:"PlanCraft", desc:"プロ仕様テンプレートによるブラウザ完結型・企画書作成ツール。", tags:["企画","プレゼン"], url:"PlanCraft/index.html"},
   {id:"lt-alarm", cat:"career", name:"発表用アラーム", desc:"5分間LT（ライトニングトーク）やピッチ専用のタイマー。", tags:["プレゼン","タイマー"], url:"発表用アラーム/index.html"},
+  {id:"web-cab-prep", cat:"career", name:"web-CAB対策 問題集サイト", desc:"法則性・命令表・暗号の解き方ガイドと、自己採点式の自作演習バンクを備えた対策ツール。[cite: 5]", tags:["就活","web-CAB","SPI"], url:"web-CAB対策 問題集サイト/index.html"},
 
   {id:"minecraft-hub", cat:"minecraft", name:"マイクラ・ツールハブ", desc:"マイクラ関連自作ツールを集約した親ポータル。クリックで5ツールへ。", tags:["ハブ"], hub:true, children:[
     {id:"mc-goalsheet", name:"マイクラ目標シート", desc:"作業目的・工程・期限・資材のタスク管理。", url:"マイクラ目標シート/index.html"},
@@ -602,14 +607,14 @@ const TOOLS = [
     {id:"mc-coords", name:"座標一覧表＆計算機", desc:"現世・ネザーの座標管理および相互変換計算。", url:"座標一覧表＆計算機/index.html"},
   ]},
 
-  {id:"cards", cat:"game", name:"IDEACARDS", desc:"カード形式のメモ帳アプリ", tags:["メモ帳"], url:"IDEA CARDS/index.html"},
   {id:"tarot", cat:"game", name:"タロット占い", desc:"大アルカナ22枚による1枚〜3枚引きスプレッド鑑定。", tags:["占い"], url:"タロット占い/index.html"},
   {id:"Color", cat:"game", name:"ColorSymphony", desc:"画像に含まれる色の割合や、色に特性を持つ人の視界を再現。", tags:["色"], url:"ColorSymphony/index.html"},
   {id:"drunk-balance", cat:"game", name:"酔っ払いバランス", desc:"バランスを取りながら遊ぶハイパーカジュアルゲーム。", tags:["ミニゲーム"], url:"酔っ払いバランス/index.html"},
   {id:"candybox", cat:"game", name:"キャンディーボックス", desc:"かわいいデザインと配色にこだわった落ち物パズルゲーム。", tags:["ミニゲーム","デザイン"], url:"キャンディーボックス/index.html"},
   {id:"design-ref", cat:"game", name:"デザイン情報サイト", desc:"歴史・構成要素・配色などを製図風に整理したリファレンス。", tags:["デザイン","リファレンス"], url:"デザイン情報サイト/index.html"},
+  {id:"design-prompt-gallery", cat:"game", name:"Web Design & Prompt Gallery", desc:"JSONデータからデザイン図鑑を自動生成する、プロンプトとプレビューのギャラリーサイト。[cite: 3]", tags:["デザイン","ギャラリー","自動生成"], url:"Web Design & Prompt Gallery/index.html"},
 ];
-  
+
 /* ============ 状態 ============ */
 let state = { cat:"all", search:"", subtags:new Set() };
 
