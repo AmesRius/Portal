@@ -564,11 +564,13 @@ const CATEGORIES = [
 ];
 
 const TOOLS = [
-  {id:"csv2json", cat:"dev", name:"CSVtoJSONコンバーター", desc:"モックデータ・DB作成用のCSV⇔JSON変換ツール。", tags:["変換","DB","開発補助"], url:"CSV&JSONコンバーター/index.html"},
+  {id:"csv2json", cat:"dev", name:"CSV&JSONコンバーター", desc:"モックデータ・DB作成用のCSV⇔JSON変換ツール。", tags:["変換","DB","開発補助"], url:"CSVtoJSONコンバーター/index.html"},
+  {id:"table-to-csv", cat:"dev", name:"表データからCSV作成ツール", desc:"Excel等の表データをペーストし、自動エスケープや文字コード変換（UTF-8/Shift_JIS）を施してCSV出力するツール。[cite: 8]", tags:["CSV","データ変換","データ処理"], url:"表データからCSV作成ツール/index.html"}
   {id:"uiedit", cat:"dev", name:"UI調整エディタ", desc:"GUI上でのプロトタイプデザイン微調整＆CSS抽出。", tags:["UI","デザイン","開発補助"], url:"UI調整エディタ/index.html"},
   {id:"livepreview", cat:"dev", name:"livepreview", desc:"複数形式のリアルタイムブラウザプレビュー・編集。", tags:["プレビュー","開発補助"], url:"livepreview/index.html"},
-  {id:"portal-local", cat:"dev", name:"Portal-local", desc:"ローカルのプロトタイプ／過去制作物をダッシュボード化。", tags:["管理","ダッシュボード"], url:"Portal-local/index.html"},
+  {id:"portal-local", cat:"dev", name:"Portal-local", desc:"ローカルのプロトタイプ／過去制作物をダッシュボード化。", tags:["管理","ダッシュボード"], url:"portal-local/index.html"},
   {id:"codesplit", cat:"dev", name:"コード分割&統合", desc:"単一ファイルのHTML/CSS/JSを自動分割・一括保存。", tags:["開発補助","変換"], url:"コード分割&統合/index.html"},
+  {id:"code-diff-checker", cat:"dev", name:"コード比較ツール", desc:"2つのコードの変更点を視覚的に分かりやすく比較できる、Monaco Editor搭載の差分確認ツール。[cite: 7]", tags:["差分比較","エディタ","開発補助"], url:"コード比較ツール/index.html"},
   {id:"dbgen", cat:"dev", name:"データベースジェネレーター", desc:"CSVからブラウザ完結のWeb DBを自動生成。", tags:["DB","自動生成"], url:"データベースジェネレーター/index.html"},
   {id:"datareplace", cat:"dev", name:"データ置換ツール", desc:"アンケート等のデータクレンジング・コーディング支援。", tags:["データ処理","研究補助"], url:"データ置換ツール/index.html"},
   {id:"mdcleaner", cat:"dev", name:"マークダウンクリーナー", desc:"AI生成テキストなどの記法を削ぎ落としプレーンテキスト化。", tags:["テキスト処理","AI"], url:"マークダウンクリーナー/index.html"},
@@ -600,7 +602,7 @@ const TOOLS = [
   {id:"lt-alarm", cat:"career", name:"発表用アラーム", desc:"5分間LT（ライトニングトーク）やピッチ専用のタイマー。", tags:["プレゼン","タイマー"], url:"発表用アラーム/index.html"},
   {id:"web-cab-prep", cat:"career", name:"web-CAB対策 問題集サイト", desc:"法則性・命令表・暗号の解き方ガイドと、自己採点式の自作演習バンクを備えた対策ツール。", tags:["就活","web-CAB","SPI"], url:"web-CAB対策 問題集サイト/index.html"},
 
-  {id:"minecraft-hub", cat:"minecraft", name:"マイクラ・ツールハブ", desc:"マイクラ関連自作ツールを集約した親ポータル。クリックで5ツールへ。", tags:["ハブ"], hub:true, children:[
+  {id:"minecraft-hub", cat:"minecraft", name:"マイクラ・ツールハブ", desc:"マイクラ関連自作ツールを集約した親ポータル。クリックで4ツールへ。", tags:["ハブ"], hub:true, children:[
     {id:"mc-goalsheet", name:"マイクラ目標シート", desc:"作業目的・工程・期限・資材のタスク管理。", url:"マイクラ目標シート/index.html"},
     {id:"mc-trade", name:"村人交易図鑑", desc:"エメラルド交換レートの記録・閲覧。", url:"村人交易図鑑/index.html"},
     {id:"mc-json", name:"JSON作成サイト", desc:"交易図鑑登録用JSONの作成ツール。", url:"JSON作成サイト/index.html"},
@@ -609,7 +611,6 @@ const TOOLS = [
 
   {id:"tarot", cat:"game", name:"タロット占い", desc:"大アルカナ22枚による1枚〜3枚引きスプレッド鑑定。", tags:["占い"], url:"タロット占い/index.html"},
   {id:"Color", cat:"game", name:"ColorSymphony", desc:"画像に含まれる色の割合や、色に特性を持つ人の視界を再現。", tags:["色"], url:"ColorSymphony/index.html"},
-  {id:"drunk-balance", cat:"game", name:"酔っ払いバランス", desc:"バランスを取りながら遊ぶハイパーカジュアルゲーム。", tags:["ミニゲーム"], url:"酔っ払いバランス/index.html"},
   {id:"candybox", cat:"game", name:"キャンディーボックス", desc:"かわいいデザインと配色にこだわった落ち物パズルゲーム。", tags:["ミニゲーム","デザイン"], url:"キャンディーボックス/index.html"},
   {id:"design-ref", cat:"game", name:"デザイン情報サイト", desc:"歴史・構成要素・配色などを製図風に整理したリファレンス。", tags:["デザイン","リファレンス"], url:"デザイン情報サイト/index.html"},
   {id:"design-prompt-gallery", cat:"game", name:"Webデザイン図鑑＆プロンプト集サイト", desc:"JSONデータからデザイン図鑑を自動生成する、プロンプトとプレビューのギャラリーサイト。", tags:["デザイン","ギャラリー","自動生成"], url:"Webデザイン図鑑＆プロンプト集サイト/index.html"},
