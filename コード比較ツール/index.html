@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>コード比較ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        #diff-container {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #333;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background-color: #005999; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>コード差分チェッカー</h2>
+        <button onclick="resetCode()">サンプルコードをリセット</button>
+    </div>
+    
+    <!-- 比較エディタの表示領域 -->
+    <div id="diff-container"></div>
+
+    <!-- Monaco Editorの読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' }});
+        
+        let diffEditor;
+        let originalModel;
+        let modifiedModel;
+
+        require(['vs/editor/editor.main'], function() {
+            // Diffエディタの初期化
+            diffEditor = monaco.editor.createDiffEditor(document.getElementById('diff-container'), {
+                theme: 'vs-dark',
+                enableSplitViewResizing: true,
+                originalEditable: true, // 左側の編集を許可
+                renderSideBySide: true  // 左右分割表示
+            });
+
+            // 初期データのセットアップ
+            window.resetCode();
+        });
+
+        // サンプルコードをセットする関数
+        window.resetCode = function() {
+            const code1 = "function calculate(a, b) {\n    return a + b;\n}\n\nconsole.log(calculate(2, 3));";
+            const code2 = "function calculate(a, b) {\n    // 足し算を行う\n    return a + b;\n}\n\nconsole.log(calculate(5, 10));";
+
+            if (originalModel) originalModel.dispose();
+            if (modifiedModel) modifiedModel.dispose();
+
+            originalModel = monaco.editor.createModel(code1, "javascript");
+            modifiedModel = monaco.editor.createModel(code2, "javascript");
+
+            diffEditor.setModel({
+                original: originalModel,
+                modified: modifiedModel
+            });
+        };
+    </script>
+</body>
+</html>
