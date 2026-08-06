@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>村人交易JSON生成ツール</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { text-align: center; }
+    .villager { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 0 5px #ccc; }
+    .level { margin-top: 10px; background: #f2f2f2; padding: 10px; border-radius: 8px; }
+    button { margin: 5px; padding: 5px 10px; cursor: pointer; border-radius: 5px; border: none; background: #0078d7; color: white; }
+    button:hover { opacity: 0.9; }
+    input { margin: 3px; padding: 5px; }
+    textarea { width: 100%; height: 200px; margin-top: 15px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>🧑‍🌾 村人交易JSON生成ツール</h1>
+  <div id="villagers"></div>
+  <button id="addVillager">＋ 職業を追加</button>
+  <button id="generateJSON">✅ JSON生成</button>
+  <button id="copyJSON">📋 コピー</button>
+  <button id="downloadJSON">💾 保存</button>
+  <textarea id="output" readonly placeholder="ここにJSONが生成されます"></textarea>
+
+  <script>
+    const villagersDiv = document.getElementById('villagers');
+    const output = document.getElementById('output');
+
+    document.getElementById('addVillager').onclick = () => {
+      const villagerDiv = document.createElement('div');
+      villagerDiv.className = 'villager';
+      villagerDiv.innerHTML = `
+        <label>職業：<input type="text" class="job" placeholder="例：司書"></label>
+        <div class="levels"></div>
+        <button class="addLevel">＋ レベルを追加</button>
+      `;
+      villagersDiv.appendChild(villagerDiv);
+      villagerDiv.querySelector('.addLevel').onclick = () => addLevel(villagerDiv.querySelector('.levels'));
+    };
+
+    function addLevel(container) {
+      const levelDiv = document.createElement('div');
+      levelDiv.className = 'level';
+      levelDiv.innerHTML = `
+        <label>レベル：<input type="text" class="levelName" placeholder="例：新米"></label><br>
+        <b>エメラルドになるもの：</b>
+        <div class="sellItems"></div>
+        <button class="addSell">＋ 追加</button><br>
+        <b>エメラルドで買えるもの：</b>
+        <div class="buyItems"></div>
+        <button class="addBuy">＋ 追加</button>
+      `;
+      container.appendChild(levelDiv);
+
+      levelDiv.querySelector('.addSell').onclick = () => addItem(levelDiv.querySelector('.sellItems'));
+      levelDiv.querySelector('.addBuy').onclick = () => addItem(levelDiv.querySelector('.buyItems'));
+    }
+
+    function addItem(container) {
+      const itemDiv = document.createElement('div');
+      itemDiv.innerHTML = `<input type="text" placeholder="項目"> × <input type="number" min="1" value="1" style="width:60px">`;
+      container.appendChild(itemDiv);
+    }
+
+    document.getElementById('generateJSON').onclick = () => {
+      const data = {};
+      document.querySelectorAll('.villager').forEach(v => {
+        const job = v.querySelector('.job').value.trim();
+        if (!job) return;
+        data[job] = {};
+        v.querySelectorAll('.level').forEach(lv => {
+          const levelName = lv.querySelector('.levelName').value.trim();
+          if (!levelName) return;
+          const sellItems = Array.from(lv.querySelectorAll('.sellItems div')).map(d => ({
+            item: d.children[0].value,
+            count: Number(d.children[1].value)
+          }));
+          const buyItems = Array.from(lv.querySelectorAll('.buyItems div')).map(d => ({
+            item: d.children[0].value,
+            count: Number(d.children[1].value)
+          }));
+          data[job][levelName] = {
+            "エメラルドになるもの": sellItems,
+            "エメラルドで買えるもの": buyItems
+          };
+        });
+      });
+      output.value = JSON.stringify(data, null, 2);
+    };
+
+    document.getElementById('copyJSON').onclick = () => {
+      navigator.clipboard.writeText(output.value);
+      alert('コピーしました！');
+    };
+
+    document.getElementById('downloadJSON').onclick = () => {
+      const blob = new Blob([output.value], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'villager_trades.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+  </script>
+</body>
+</html>

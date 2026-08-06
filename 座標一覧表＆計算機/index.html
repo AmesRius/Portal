@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-R">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft 座標管理ツール (Google Sheets版)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1, h2, h3 { border-bottom: 2px solid #4CAF50; padding-bottom: 5px; color: #2E7D32; }
+        h1 { font-size: 2em; } h2 { font-size: 1.5em; margin-top: 30px; } h3 { font-size: 1.2em; margin-top: 20px; border-bottom: 1px solid #ddd; }
+        .calculator { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .calc-group { border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+        .calc-group label { display: inline-block; width: 25px; font-weight: bold; }
+        .calc-group input[type="number"] { width: 100px; padding: 5px; margin-bottom: 10px; }
+        .calc-group button { background-color: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        .calc-group button:hover { background-color: #45a049; }
+        .calc-result { font-weight: bold; font-size: 1.1em; margin-top: 10px; color: #D32F2F; }
+        .list-section { margin-top: 20px; }
+        .add-form { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .add-form input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .add-form input[placeholder="場所名"] { flex: 2; min-width: 150px; }
+        .add-form input[type="number"] { flex: 1; min-width: 60px; }
+        .add-form button { background-color: #0288D1; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .add-form button:hover { background-color: #0277BD; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f9f9f9; }
+        td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: right; font-family: "Lucida Console", Monaco, monospace; min-width: 50px; }
+        .delete-btn { background-color: #D32F2F; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .delete-btn:hover { background-color: #C62828; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; }
+        @media (max-width: 768px) { .calculator { grid-template-columns: 1fr; } .add-form { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎮 Minecraft 座標管理ツール (Google Sheets版)</h1>
+
+        <h2>⚙️ 座標計算機</h2>
+        <div class="calculator">
+            <div class="calc-group">
+                <h3>現世 → ネザー</h3>
+                <div><label for="ow-x">X:</label><input type="number" id="ow-x" placeholder="X"></div>
+                <div><label for="ow-y">Y:</label><input type="number" id="ow-y" placeholder="Y"></div>
+                <div><label for="ow-z">Z:</label><input type="number" id="ow-z" placeholder="Z"></div>
+                <button id="btn-to-nether">計算</button>
+                <p id="nether-result" class="calc-result"></p>
+            </div>
+            <div class="calc-group">
+                <h3>ネザー → 現世</h3>
+                <div><label for="ne-x">X:</label><input type="number" id="ne-x" placeholder="X"></div>
+                <div><label for="ne-y">Y:</label><input type="number" id="ne-y" placeholder="Y"></div>
+                <div><label for="ne-z">Z:</label><input type="number" id="ne-z" placeholder="Z"></div>
+                <button id="btn-to-overworld">計算</button>
+                <p id="overworld-result" class="calc-result"></p>
+            </div>
+        </div>
+
+        <h2>🗺️ 座標一覧</h2>
+        <div class="list-section" id="overworld-section">
+            <h3>🌳 現世 (Overworld)</h3>
+            <form id="add-form-overworld" class="add-form">
+                <input type="text" id="name-ow" placeholder="場所名 (例: 拠点)" required>
+                <input type="number" id="x-ow" placeholder="X" required>
+                <input type="number" id="y-ow" placeholder="Y" required>
+                <input type="number" id="z-ow" placeholder="Z" required>
+                <button type="submit">追加</button>
+            </form>
+            <table id="table-overworld">
+                <thead><tr><th>場所</th><th>X</th><th>Y</th><th>Z</th><th>操作</th></tr></thead>
+                <tbody id="list-body-overworld"></tbody>
+            </table>
+        </div>
+
+        <div class="list-section" id="nether-section">
+            <h3>🔥 ネザー (Nether)</h3>
+            <form id="add-form-nether" class="add-form">
+                <input type="text" id="name-ne" placeholder="場所名 (例: ネザー要塞)" required>
+                <input type="number" id="x-ne" placeholder="X" required>
+                <input type="number" id="y-ne" placeholder="Y" required>
+                <input type="number" id="z-ne" placeholder="Z" required>
+                <button type="submit">追加</button>
+            </form>
+            <table id="table-nether">
+                <thead><tr><th>場所</th><th>X</th><th>Y</th><th>Z</th><th>操作</th></tr></thead>
+                <tbody id="list-body-nether"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="loading" class="loading-overlay">読み込み中...</div>
+
+    <script>
+        // ⚠️ ステップ2でコピーした「ウェブアプリのURL」をここに貼り付け
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbykp112ZFS35ovfHivfSD6zL1HQhG3ad5qDbvcA49DgJk7YaIPG5Rom61Wsr9ZpnKMaTw/exec';
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- ローディング表示 ---
+            const loadingOverlay = document.getElementById('loading');
+            const showLoading = () => { loadingOverlay.style.display = 'flex'; };
+            const hideLoading = () => { loadingOverlay.style.display = 'none'; };
+
+            // --- 座標計算機 (変更なし) ---
+            document.getElementById('btn-to-nether').addEventListener('click', () => {
+                const x = parseFloat(document.getElementById('ow-x').value) || 0;
+                const y = parseFloat(document.getElementById('ow-y').value) || 0;
+                const z = parseFloat(document.getElementById('ow-z').value) || 0;
+                document.getElementById('nether-result').textContent = `ネザー座標: X=${(x / 8).toFixed(1)}, Y=${y}, Z=${(z / 8).toFixed(1)}`;
+            });
+            document.getElementById('btn-to-overworld').addEventListener('click', () => {
+                const x = parseFloat(document.getElementById('ne-x').value) || 0;
+                const y = parseFloat(document.getElementById('ne-y').value) || 0;
+                const z = parseFloat(document.getElementById('ne-z').value) || 0;
+                document.getElementById('overworld-result').textContent = `現世座標: X=${(x * 8).toFixed(0)}, Y=${y}, Z=${(z * 8).toFixed(0)}`;
+            });
+
+            // --- 座標一覧 (Google Apps Script版) ---
+            const forms = {
+                overworld: document.getElementById('add-form-overworld'),
+                nether: document.getElementById('add-form-nether')
+            };
+            const tableBodies = {
+                overworld: document.getElementById('list-body-overworld'),
+                nether: document.getElementById('list-body-nether')
+            };
+            const inputs = {
+                overworld: { name: document.getElementById('name-ow'), x: document.getElementById('x-ow'), y: document.getElementById('y-ow'), z: document.getElementById('z-ow') },
+                nether: { name: document.getElementById('name-ne'), x: document.getElementById('x-ne'), y: document.getElementById('y-ne'), z: document.getElementById('z-ne') }
+            };
+
+            // 1. データの「読み込み」処理 (GASからGET)
+            async function loadCoordinates() {
+                showLoading();
+                try {
+                    const response = await fetch(GAS_WEB_APP_URL);
+                    if (!response.ok) throw new Error('Network error');
+                    const data = await response.json();
+
+                    if (data.status === 'error') throw new Error(data.message);
+
+                    tableBodies.overworld.innerHTML = '';
+                    tableBodies.nether.innerHTML = '';
+
+                    data.overworld.forEach(item => addRowToTable(item, 'overworld'));
+                    data.nether.forEach(item => addRowToTable(item, 'nether'));
+                } catch (e) {
+                    console.error("Error loading data: ", e);
+                    alert("データの読み込みに失敗しました。\n" + e.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // 2. データの「追加」処理 (GASへPOST)
+            async function addCoordinate(type) {
+                const item = {
+                    name: inputs[type].name.value,
+                    x: inputs[type].x.value,
+                    y: inputs[type].y.value,
+                    z: inputs[type].z.value
+                };
+
+                const payload = { action: 'add', type: type, data: item };
+                showLoading();
+
+                try {
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // GAS POSTの定型文
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        forms[type].reset();
+                        await loadCoordinates(); // 追加成功したら再読み込み
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (e) {
+                    console.error("Error adding data: ", e);
+                    alert("データの追加に失敗しました。\n" + e.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // 3. データの「削除」処理 (GASへPOST)
+            async function deleteCoordinate(type, id) {
+                if (!confirm("この座標を削除しますか？")) return;
+                const payload = { action: 'delete', type: type, id: id };
+                showLoading();
+
+                try {
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        await loadCoordinates(); // 削除成功したら再読み込み
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (e) {
+                    console.error("Error deleting data: ", e);
+                    alert("データの削除に失敗しました。\n" + e.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // 4. テーブルに行を描画
+            function addRowToTable(item, type) {
+                const tableBody = tableBodies[type];
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${escapeHTML(item.name)}</td>
+                    <td>${escapeHTML(item.x)}</td>
+                    <td>${escapeHTML(item.y)}</td>
+                    <td>${escapeHTML(item.z)}</td>
+                    <td><button class="delete-btn" data-id="${escapeHTML(item.id)}">削除</button></td>
+                `;
+            }
+
+            // 5. HTMLエスケープ用ヘルパー
+            function escapeHTML(str) {
+                if (str === null || str === undefined) return '';
+                return String(str).replace(/[&<>"']/g, function(match) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match];
+                });
+            }
+
+            // 6. イベントリスナーの設定
+            forms.overworld.addEventListener('submit', (e) => { e.preventDefault(); addCoordinate('overworld'); });
+            forms.nether.addEventListener('submit', (e) => { e.preventDefault(); addCoordinate('nether'); });
+
+            tableBodies.overworld.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn')) { deleteCoordinate('overworld', e.target.dataset.id); }
+            });
+            tableBodies.nether.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn')) { deleteCoordinate('nether', e.target.dataset.id); }
+            });
+
+            // 7. 初期読み込み
+            loadCoordinates();
+        });
+    </script>
+</body>
+</html>

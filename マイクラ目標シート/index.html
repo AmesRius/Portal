@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイクラ目標シート</title>
+<style>
+  body {
+    font-family: "Noto Sans JP", sans-serif;
+    background-color: #fafafa;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.4em;
+    margin-bottom: 1em;
+  }
+  form {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+    font-size: 0.9em;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  textarea {
+    resize: vertical;
+    height: 70px;
+  }
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  button {
+    background: #0078d7;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    width: 48%;
+  }
+  button:hover {
+    background: #005fa3;
+  }
+  .output {
+    margin-top: 20px;
+    font-size: 0.85em;
+    background: #f1f1f1;
+    padding: 10px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎯 マイクラ目標シート</h1>
+<form id="goalForm">
+  <label>何のために？</label>
+  <textarea id="purpose" placeholder="例：効率的に村を発展させるため"></textarea>
+
+  <label>何をする？</label>
+  <textarea id="goal" placeholder="例：自動農場を作る"></textarea>
+
+  <label>どんな工程で行う？</label>
+  <textarea id="process" placeholder="例：畑→レッドストーン→水流→回収チェスト"></textarea>
+
+  <label>いつまでに終わらせる？（例：3時間、45分など）</label>
+  <input type="text" id="timeLimit" placeholder="例：2時間30分">
+
+  <label>そのために何が必要？</label>
+  <textarea id="requirements" placeholder="例：レッドストーン、ホッパー、チェスト"></textarea>
+
+  <div class="buttons">
+    <button type="button" id="copyBtn">コピー</button>
+    <button type="button" id="csvBtn">CSV出力</button>
+  </div>
+</form>
+
+<div id="output" class="output" style="display:none;"></div>
+
+<script>
+  const form = document.getElementById('goalForm');
+  const outputDiv = document.getElementById('output');
+
+  function getFormData() {
+    return {
+      '何のために': document.getElementById('purpose').value.trim(),
+      '何をする': document.getElementById('goal').value.trim(),
+      'どんな工程で行う': document.getElementById('process').value.trim(),
+      'いつまでに終わらせる': document.getElementById('timeLimit').value.trim(),
+      'そのために何が必要': document.getElementById('requirements').value.trim()
+    };
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const data = getFormData();
+    const text = Object.entries(data)
+      .map(([key, val]) => `${key}：${val}`)
+      .join('\n');
+    navigator.clipboard.writeText(text);
+    outputDiv.style.display = 'block';
+    outputDiv.textContent = "✅ コピーしました！\n\n" + text;
+  });
+
+  document.getElementById('csvBtn').addEventListener('click', () => {
+    const data = getFormData();
+    const headers = Object.keys(data).join(',');
+    const values = Object.values(data).map(v => `"${v.replace(/"/g, '""')}"`).join(',');
+    const csvContent = headers + '\n' + values;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'minecraft_goal.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    outputDiv.style.display = 'block';
+    outputDiv.textContent = "💾 CSVファイルを出力しました！";
+  });
+</script>
+
+</body>
+</html>
