@@ -565,17 +565,17 @@ const CATEGORIES = [
 
 const TOOLS = [
   {id:"csv2json", cat:"dev", name:"CSV&JSONコンバーター", desc:"モックデータ・DB作成用のCSV⇔JSON変換ツール。", tags:["変換","DB","開発補助"], url:"CSVtoJSONコンバーター/index.html"},
-  {id:"table-to-csv", cat:"dev", name:"表データからCSV作成ツール", desc:"Excel等の表データをペーストし、自動エスケープや文字コード変換（UTF-8/Shift_JIS）を施してCSV出力するツール。[cite: 8]", tags:["CSV","データ変換","データ処理"], url:"表データからCSV作成ツール/index.html"},
+  {id:"table-to-csv", cat:"dev", name:"表データからCSV作成ツール", desc:"Excel等の表データをペーストし、自動エスケープや文字コード変換（UTF-8/Shift_JIS）を施してCSV出力するツール。", tags:["CSV","データ変換","データ処理"], url:"表データからCSV作成ツール/index.html"},
   {id:"uiedit", cat:"dev", name:"UI調整エディタ", desc:"GUI上でのプロトタイプデザイン微調整＆CSS抽出。", tags:["UI","デザイン","開発補助"], url:"UI調整エディタ/index.html"},
   {id:"livepreview", cat:"dev", name:"livepreview", desc:"複数形式のリアルタイムブラウザプレビュー・編集。", tags:["プレビュー","開発補助"], url:"livepreview/index.html"},
   {id:"portal-local", cat:"dev", name:"Portal-local", desc:"ローカルのプロトタイプ／過去制作物をダッシュボード化。", tags:["管理","ダッシュボード"], url:"portal-local/index.html"},
   {id:"codesplit", cat:"dev", name:"コード分割&統合", desc:"単一ファイルのHTML/CSS/JSを自動分割・一括保存。", tags:["開発補助","変換"], url:"コード分割&統合/index.html"},
-  {id:"code-diff-checker", cat:"dev", name:"コード比較ツール", desc:"2つのコードの変更点を視覚的に分かりやすく比較できる、Monaco Editor搭載の差分確認ツール。[cite: 7]", tags:["差分比較","エディタ","開発補助"], url:"コード比較ツール/index.html"},
+  {id:"code-diff-checker", cat:"dev", name:"コード比較ツール", desc:"2つのコードの変更点を視覚的に分かりやすく比較できる、Monaco Editor搭載の差分確認ツール。", tags:["差分比較","エディタ","開発補助"], url:"コード比較ツール/index.html"},
   {id:"dbgen", cat:"dev", name:"データベースジェネレーター", desc:"CSVからブラウザ完結のWeb DBを自動生成。", tags:["DB","自動生成"], url:"データベースジェネレーター/index.html"},
   {id:"datareplace", cat:"dev", name:"データ置換ツール", desc:"アンケート等のデータクレンジング・コーディング支援。", tags:["データ処理","研究補助"], url:"データ置換ツール/index.html"},
   {id:"mdcleaner", cat:"dev", name:"マークダウンクリーナー", desc:"AI生成テキストなどの記法を削ぎ落としプレーンテキスト化。", tags:["テキスト処理","AI"], url:"マークダウンクリーナー/index.html"},
   {id:"aichatarchive", cat:"dev", name:"AI応答記録サイト（AIChatArchive）", desc:"ChatGPT/Gemini等の対話記録・整理。", tags:["AI","記録","アーカイブ"], url:"AI応答記録サイト（AIChatArchive）/index.html"},
-　{id:"error-anonymizer", cat:"dev", name:"エラーメッセージ匿名化ツール", desc:"エラーログに含まれる機密情報や指定した文字列を「ユーザー名」に一括置換するブラウザツール。", tags:["匿名化","置換","開発補助"], url:"エラーメッセージ匿名化ツール/index.html"},
+  {id:"error-anonymizer", cat:"dev", name:"エラーメッセージ匿名化ツール", desc:"エラーログに含まれる機密情報や指定した文字列を「ユーザー名」に一括置換するブラウザツール。", tags:["匿名化","置換","開発補助"], url:"エラーメッセージ匿名化ツール/index.html"},
   {id:"md-file-tree", cat:"dev", name:"ファイル構成エディター", desc:"インデントテキストやGitHubリポジトリURLからMarkdown形式のツリー構造を即座に自動生成するツール。", tags:["Markdown","ツリー生成","ドキュメント"], url:"ファイル構成エディター/index.html"},
 
   {id:"tanQ-db", cat:"edu", name:"探究支援サイト＆探究テーマDB", desc:"1万件のテーマ検索で探究学習をサポート。", tags:["DB","探究"], url:"探究支援サイト＆探究テーマDB/index.html"},
@@ -595,6 +595,7 @@ const TOOLS = [
   {id:"latextable", cat:"research", name:"LaTeXTableConverter", desc:"JASP出力結果などの表データをコピペ用フォーマットへ変換。", tags:["変換","統計"], url:"LaTeXTableConverter/index.html"},
   {id:"charcount", cat:"research", name:"文字数カウントVer1", desc:"文字種分析・原稿用紙換算・整形対応のテキストエディタ。", tags:["執筆","ライティング","開発補助"], url:"文字数カウントVer1/index.html"},
   {id:"experimental-cats", cat:"research", name:"実験ネコシリーズ", desc:"数学・物理学・心理学の世界で語られてきた「猫」の思考実験・逸話を横断的にまとめたアーカイブ。", tags:["思考実験","科学","読み物"], url:"実験ネコシリーズ/index.html"},
+  {id:"kyouki-map", cat:"research", name:"単語共起マップジェネレーター", desc:"単語間の共起・関連性をネットワーク図で可視化するツール。子マップによる階層化やJSONデータの保存・読込に対応。", tags:["分析","研究","テキストマイニング","思考整理"], url:"共起マップジェネレーター/index.html"},
 
   {id:"spi-calc", cat:"career", name:"SPI計算機", desc:"SPI非言語分野の解法・学習用スマホ最適化計算機。", tags:["就活","計算"], url:"SPI/index.html"},
   {id:"company-prompt", cat:"career", name:"企業研究プロンプトジェネレーター", desc:"AIを活用した企業分析用プロンプトの自動作成。", tags:["就活","AI","業界研究"], url:"企業研究プロンプトジェネレーター/index.html"},
@@ -614,6 +615,8 @@ const TOOLS = [
   {id:"candybox", cat:"game", name:"キャンディーボックス", desc:"かわいいデザインと配色にこだわった落ち物パズルゲーム。", tags:["ミニゲーム","デザイン"], url:"キャンディーボックス/index.html"},
   {id:"design-ref", cat:"game", name:"デザイン情報サイト", desc:"歴史・構成要素・配色などを製図風に整理したリファレンス。", tags:["デザイン","リファレンス"], url:"デザイン情報サイト/index.html"},
   {id:"design-prompt-gallery", cat:"game", name:"Webデザイン図鑑＆プロンプト集サイト", desc:"JSONデータからデザイン図鑑を自動生成する、プロンプトとプレビューのギャラリーサイト。", tags:["デザイン","ギャラリー","自動生成"], url:"Webデザイン図鑑＆プロンプト集サイト/index.html"},
+  {id:"dot-csv", cat:"game", name:"DOT/CSV（CSVドット絵エディタ）", desc:"生成AIプロンプトからCSV形式のドット絵データを読み込み、ブラウザ上で編集・PNG/JPEG出力できるピクセルアートエディタ。", tags:["ドット絵","ピクセルアート","CSV","AI連携"], url:"CSVドット絵エディタ/index.html"},
+  {id:"nazo-char2num", cat:"game", name:"謎解き用文字→数字変換ツール", desc:"ひらがな・カタカナ・英字を行列座標（行×段）や50音順、ポケベル式番号にリアルタイム変換する暗号制作ツール。", tags:["謎解き","暗号","変換","ゲーム制作"], url:"謎解き用文字→数字変換ツール/index.html"},
 ];
 
 /* ============ 状態 ============ */
